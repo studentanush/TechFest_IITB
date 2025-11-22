@@ -1,0 +1,7 @@
+# This project uses Node.js (MERN stack)
+# requirements.txt included as per submission guidelines
+# Python is not used, so this file is intentionally empty.
+
+# Dependencies are listed in:
+#   /src/backend/package.json
+#   /src/frontend/package.json
