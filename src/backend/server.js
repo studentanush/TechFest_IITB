@@ -37,14 +37,13 @@ const io = new Server(httpServer, {
 //          ROOM STORE USING MAP()
 // --------------------------------------------
 const rooms = new Map();
-// rooms.set("abc123", {
-//   admin: "Alice",
-//   players: new Map([
-//       ["socket1", "Bob"],
-//       ["socket2", "Charlie"]
-//   ])
-// });
-
+// rooms = {
+//   ABC123 → {
+//     admin: "Alice",
+//     players: Map(socketId → playerName)
+//     scores: Map(socketId → numericScore)
+//   }
+// }
 // ----------------- DEFAULT NAMESPACE: Players -----------------
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
@@ -75,11 +74,50 @@ io.on("connection", (socket) => {
   });
 
   // Player submits answer
-  socket.on("submitAnswer", ({ roomCode, answer,correctAnswer,time }, callback) => {
-    console.log(`Answer from ${socket.id} in ${roomCode}:`, answer);
-    // we will add validation here later for the questions
+  socket.on("submitAnswer", ({ roomCode, answer, correctAnswer, timeTaken, totalTime }, callback) => {
+    const room = rooms.get(roomCode);
+    if (!room) {
+      callback({ error: "Room not found" });
+      return;
+    }
 
-    callback({ status: "ok" });
+    let points = 0;
+    const isCorrect = answer === correctAnswer;
+
+    if (isCorrect) {
+      // Points = 10 + (totalTime - timeTaken) * 5
+      points = 10 + (totalTime - timeTaken) * 5;
+
+      // Prevent negative score
+      if (points < 0) points = 0;
+    }
+
+    // Previous score
+    const oldScore = room.scores.get(socket.id) || 0;
+
+    // Update score
+    room.scores.set(socket.id, oldScore + points);
+
+    console.log(
+      `Player ${socket.id}: Correct=${isCorrect}, Points=${points}, Total=${room.scores.get(socket.id)}`
+    );
+
+    // Build Leaderboard
+    const leaderboard = Array.from(room.scores.entries())
+      .map(([id, score]) => ({
+        playerName: room.players.get(id),
+        score,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    // Send leaderboard to room
+    io.to(roomCode).emit("leaderboardUpdate", leaderboard);
+
+    callback({
+      correct: isCorrect,
+      earnedPoints: points,
+      totalScore: room.scores.get(socket.id),
+    });
   });
 
   socket.on("disconnect", () => {
@@ -112,7 +150,8 @@ adminNamespace.on("connection", (socket) => {
     // Store using Map.set()
     rooms.set(roomCode, {
       admin: adminName,
-      players: new Map()
+      players: new Map(),
+      scores: new Map()
     });
 
     console.log(`Room ${roomCode} created by ${adminName}`);
@@ -130,7 +169,7 @@ adminNamespace.on("connection", (socket) => {
     io.to(roomCode).emit("newQuestion", question);
 
     callback({ status: "sent" });
-  }); 
+  });
 });
 
 const PORT = process.env.PORT || 5000;
