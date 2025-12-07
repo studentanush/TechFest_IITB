@@ -51,6 +51,8 @@ io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
 
   socket.on("joinRoom", ({ roomCode, playerName }, callback) => {
+    console.log(roomCode);
+    console.log(rooms);
     const room = rooms.get(roomCode);
 
     if (!room) {
@@ -128,19 +130,36 @@ const adminNamespace = io.of("/admin");
 adminNamespace.on("connection", (socket) => {
   console.log("Admin connected:", socket.id);
 
-  socket.on("createRoom", ({ adminName }, callback) => {
+  socket.on("createRoom", ({ hostName,quizTime }, callback) => {
     const roomCode = nanoid(6);
-
+    console.log(hostName);
     rooms.set(roomCode, {
-      admin: adminName,
+      admin: hostName,
+      quizTime:quizTime,
+      play:false,
       players: new Map(),
       scores: new Map(),
     });
 
-    console.log(`Room ${roomCode} created by ${adminName}`);
+    console.log(`Room ${roomCode} created by ${hostName}`);
 
     callback({ roomCode });
   });
+
+  socket.on("playOnOff", ({ roomCode, play }, callback) => {
+    const room = rooms.get(roomCode);
+    if (!room) {
+        callback({ error: "Room not found" });
+        return;
+    }
+
+    room.play = play;
+
+    // Inform all players that quiz started
+    io.to(roomCode).emit("quizStarted", play );
+
+    callback({ status: "ok" });
+});
 
   socket.on("sendQuestion", ({ roomCode, question }, callback) => {
     if (!rooms.has(roomCode)) {
