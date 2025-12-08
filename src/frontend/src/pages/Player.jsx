@@ -1,25 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { playerSocket } from "../socket";
+import { useContext } from "react";
+import { ContextAPI } from "../Context";
 
 const Player = () => {
-  const [players, setPlayers] = useState([]);
-  const [leaderBoardData, setLeaderBoardData] = useState([]);
+//   const [players, setPlayers] = useState([]);
+//   const [leaderBoardData, setLeaderBoardData] = useState([]);    
   const [questionDetails, setQuestionDetails] = useState({});
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [join, setJoin] = useState(false);
-  const [play, setPlay] = useState(false);
+  //const [play, setPlay] = useState(false);
 
+  const {players,leaderBoardData,play} = useContext(ContextAPI);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [timeTaken, setTimeTaken] = useState(0);
   const [timer, setTimer] = useState(0);
 
   useEffect(() => {
-    playerSocket.on("updatePlayers", (players) => setPlayers(players));
 
-    playerSocket.on("leaderboardUpdate", (details) =>
-      setLeaderBoardData(details)
-    );
+
+    // playerSocket.on("updatePlayers", (players) => setPlayers(players));
+
+    // playerSocket.on("leaderboardUpdate", (details) =>
+    //   setLeaderBoardData(details)
+    // );
+
+
 
     playerSocket.on("newQuestion", (details) => {
       setQuestionDetails(details);
@@ -37,15 +44,15 @@ const Player = () => {
       return () => clearInterval(intv);
     });
 
-    playerSocket.on("quizStarted", () => {
-      setPlay(true);
-    });
+    // playerSocket.on("quizStarted", () => {
+    //   setPlay(true);
+    // });
 
     return () => {
-      playerSocket.off("updatePlayers");
+      //playerSocket.off("updatePlayers");
       playerSocket.off("newQuestion");
-      playerSocket.off("leaderboardUpdate");
-      playerSocket.off("quizStarted");
+      //playerSocket.off("leaderboardUpdate");
+      //playerSocket.off("quizStarted");
     };
   }, []);
 
@@ -74,6 +81,8 @@ const Player = () => {
       correctAnswer: questionDetails.correctAnswer,
       timeTaken: used,
       totalTime,
+    },(res)=>{
+        console.log(res);
     });
 
     setSelectedAnswer("Submitted");

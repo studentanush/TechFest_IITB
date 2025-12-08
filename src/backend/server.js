@@ -141,7 +141,7 @@ adminNamespace.on("connection", (socket) => {
       scores: new Map(),
     });
 
-    console.log(`Room ${roomCode} created by ${hostName}`);
+    console.log(`Room ${roomCode} created by ${hostName}`);x
 
     callback({ roomCode });
   });
