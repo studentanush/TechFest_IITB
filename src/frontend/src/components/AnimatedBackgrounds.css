@@ -1,0 +1,227 @@
+/* Professional Educational Background */
+.educational-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(135deg, 
+    #0a001a 0%,
+    #0d0020 25%,
+    #10002b 50%,
+    #0d0020 75%,
+    #0a001a 100%
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 20s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Subtle Geometric Pattern */
+.geometric-pattern {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0.03;
+}
+
+.shape {
+  position: absolute;
+  background: linear-gradient(135deg, #8a2be2, #4361ee);
+  border-radius: 4px;
+}
+
+.shape-1 {
+  width: 80px;
+  height: 80px;
+  top: 15%;
+  left: 10%;
+  transform: rotate(45deg);
+  animation: float 25s ease-in-out infinite;
+}
+
+.shape-2 {
+  width: 60px;
+  height: 60px;
+  top: 70%;
+  right: 15%;
+  transform: rotate(30deg);
+  animation: float 30s ease-in-out infinite reverse;
+  background: linear-gradient(135deg, #4361ee, #4cc9f0);
+}
+
+.shape-3 {
+  width: 100px;
+  height: 100px;
+  bottom: 20%;
+  left: 20%;
+  border-radius: 50%;
+  opacity: 0.05;
+  animation: pulse 20s ease-in-out infinite;
+  background: linear-gradient(135deg, #8a2be2, #f72585);
+}
+
+.shape-4 {
+  width: 40px;
+  height: 40px;
+  top: 40%;
+  right: 25%;
+  transform: rotate(15deg);
+  animation: float 35s ease-in-out infinite;
+  background: linear-gradient(135deg, #4cc9f0, #00b4d8);
+}
+
+.shape-5 {
+  width: 70px;
+  height: 70px;
+  bottom: 40%;
+  left: 70%;
+  transform: rotate(60deg);
+  animation: float 28s ease-in-out infinite reverse;
+}
+
+/* Knowledge Flow Lines */
+.knowledge-flow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.flow-line {
+  position: absolute;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(138, 43, 226, 0.1) 50%,
+    transparent 100%
+  );
+  height: 2px;
+  animation: flow 30s linear infinite;
+}
+
+.line-1 {
+  top: 25%;
+  width: 120%;
+  left: -20%;
+  animation-delay: 0s;
+}
+
+.line-2 {
+  top: 50%;
+  width: 110%;
+  left: -10%;
+  animation-delay: 7s;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(67, 97, 238, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+.line-3 {
+  top: 75%;
+  width: 130%;
+  left: -30%;
+  animation-delay: 14s;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(76, 201, 240, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+.line-4 {
+  top: 40%;
+  width: 115%;
+  left: -15%;
+  animation-delay: 21s;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(247, 37, 133, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+/* Academic Icons */
+.academic-icons {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.icon {
+  position: absolute;
+  font-size: 2.5rem;
+  opacity: 0.04;
+  animation: gentle-float 40s ease-in-out infinite;
+}
+
+.icon-1 { top: 20%; left: 5%; animation-delay: 0s; }
+.icon-2 { top: 65%; right: 10%; animation-delay: 8s; }
+.icon-3 { bottom: 25%; left: 15%; animation-delay: 16s; }
+.icon-4 { top: 45%; right: 20%; animation-delay: 24s; }
+.icon-5 { top: 80%; left: 80%; animation-delay: 32s; }
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(45deg); }
+  25% { transform: translate(30px, -20px) rotate(60deg); }
+  50% { transform: translate(-20px, 30px) rotate(30deg); }
+  75% { transform: translate(20px, 20px) rotate(50deg); }
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(20px, -15px) scale(1.05); }
+  66% { transform: translate(-15px, 10px) scale(0.95); }
+}
+
+@keyframes flow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.05; transform: scale(1); }
+  50% { opacity: 0.08; transform: scale(1.1); }
+}
+
+/* Subtty add these to your dashboard.css or q.css */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
