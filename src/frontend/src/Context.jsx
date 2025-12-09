@@ -1,7 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { allQuestions } from "./pages/Admin";
+
 import { playerSocket } from "./socket";
 
 // we for now using ContextAPI for state management later we can upgrade it to redux(i dont think we need too )
@@ -9,34 +8,50 @@ import { playerSocket } from "./socket";
 
 export const ContextAPI = createContext();
 const Context = (props) => {
-    const [play, setPlay] = useState(false);
-
-    //const [quizTime, setQuizTime] = useState("");
-    const [allQuestionsDetail,setAllQuestionDetail] = useState(allQuestions);
-    const [players, setPlayers] = useState([]);
-    const [leaderBoardData, setLeaderBoardData] = useState([]);
-    useEffect(() => {
-        playerSocket.on("updatePlayers", (players) => setPlayers(players));
-
-        playerSocket.on("leaderboardUpdate", (details) =>
-            setLeaderBoardData(details)
-        );
-
-        return () => {
-            playerSocket.off("updatePlayers");
-
-            playerSocket.off("leaderboardUpdate");
-
-        };
-    }, [])
-
+   const [studentData,setStudentData] = useState({});
+    const [educatorData,setEducatorData] = useState({});
+    const loginBro = (userDetails) =>{
+        if(userDetails.role=='educator'){
+          sessionStorage.setItem('edu_info',JSON.stringify(userDetails));
+          setEducatorData(userDetails);
+      }else{
+           sessionStorage.setItem('stu_info', JSON.stringify(userDetails));
+            setStudentData(userDetails);
+      }
+      
+     
+    }
+   useEffect(()=>{
+    console.log("heher in context")
+    
+        const stuDetails = sessionStorage.getItem('stu_info');
+        if(stuDetails){
+            const parseData = JSON.parse(stuDetails);
+            console.log(parseData)
+            setStudentData(parseData);
+        }
+        const eduDetails = sessionStorage.getItem('edu_info');
+        if(eduDetails){
+            const parseData = JSON.parse(eduDetails);
+            setEducatorData(parseData);
+        }
+     
+   },[])
+   const logoutStudent = () => {
+        setStudentData(null);
+        sessionStorage.removeItem('stu_info');
+       
+    };
     return (
 
         <ContextAPI.Provider value={{
-            play,
-            players,
-            leaderBoardData,
-            setPlay,
+          studentData,
+          setStudentData,
+          educatorData,
+          setEducatorData,
+          logoutStudent,
+          loginBro
+            
         }}>
             {props.children}
         </ContextAPI.Provider>

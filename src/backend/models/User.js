@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["admin", "teacher", "student"],
+      enum: ["admin", "educator", "student"],
       default: "teacher",  // creators of quizzes are usually teachers
     },
 

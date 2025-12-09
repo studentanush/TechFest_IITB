@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
+import axios from 'axios';
+import { ContextAPI } from '../../Context';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,7 +13,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-
+  const {loginBro} = useContext(ContextAPI);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -47,28 +49,49 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      setLoading(false);
-      return;
-    }
+    // const validationErrors = validateForm();
+    // if (Object.keys(validationErrors).length > 0) {
+    //   setErrors(validationErrors);
+    //   setLoading(false);
+    //   return;
+    // }
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Logging in:', { ...formData, rememberMe });
-      
+      const response = await axios.post("http://localhost:5000/api/auth/login",formData);
+      console.log(response.data.message);
+
+      const token = response.data.token;
+      const userDetails  = {
+          name:response?.data?.user.name,
+          email:response?.data?.user.email,
+          role:response?.data?.user.role,
+          token:token,
+      };
+      console.log(userDetails)
+      //localStorage.removeItem('user_info');
+      loginBro(userDetails);
+      // if(userDetails.role=='educator'){
+      //     sessionStorage.setItem('edu_info',JSON.stringify(userDetails))
+      // }else{
+      //      sessionStorage.setItem('stu_info', JSON.stringify(userDetails));
+      // }
+     
+        console.log("stored in local storage")
       // Store token if remember me is checked
       if (rememberMe) {
-        localStorage.setItem('auth_token', 'simulated_token');
+        
       } else {
         sessionStorage.setItem('auth_token', 'simulated_token');
       }
       
       // Redirect to dashboard
-      navigate('/student/dashboard');
+      if(userDetails.role=='student'){
+        navigate('/student/dashboard');
+      }else{
+        navigate('/admin/dashboard');
+      }
+      
       
     } catch (error) {
       setErrors({ general: 'Invalid email or password' });

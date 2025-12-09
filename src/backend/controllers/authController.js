@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const generateToken = (user) => {
+  console.log("here in generate")
   return jwt.sign(
     {
       id: user._id,
@@ -17,10 +18,10 @@ const generateToken = (user) => {
 // ---------------- SIGNUP ---------------- //
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-
+    const { name, email, password,role } = req.body;
+    console.log(name+","+email);
     // Check existing user
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ email })
     if (existing)
       return res.status(400).json({ message: "Email already registered" });
 
@@ -32,18 +33,18 @@ export const signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: "teacher", // default role for creators
+      role,
     });
 
-    const token = generateToken(user);
+    //const token = generateToken(user);
 
     // Never return password
-    const { password: _, ...userData } = user.toObject();
+    //const { password: _, ...userData } = user.toObject();
 
     res.status(201).json({
       message: "Signup successful",
-      token,
-      user: userData,
+      //token,
+      //user: userData,
     });
   } catch (error) {
     res.status(500).json({ message: "Signup error", error: error.message });
@@ -54,20 +55,25 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log(email + " from login")
     // Explicitly select password
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select('+password');
+    console.log(user);
     if (!user)
       return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
-
+    
     const token = generateToken(user);
-
+  console.log(token);
     // Remove password
-    const { password: _, ...userData } = user.toObject();
+    const userData = {
+      name:user.name,
+      email:user.email,
+      role:user.role,
+    }
 
     res.json({
       message: "Login successful",

@@ -12,7 +12,7 @@ const authLimiter = rateLimit({
 });
 
 // ---- Auth Routes ---- //
-router.post("/signup", authLimiter, signup);
-router.post("/login", authLimiter, login);
+router.post("/signup", signup);
+router.post("/login", login);
 
 export default router;

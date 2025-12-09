@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom'; // Add this import
 import './Dashboard.css';
+import { ContextAPI } from '../../Context';
 
 const StudentDashboard = () => {
   const [roomCode, setRoomCode] = useState('');
@@ -10,7 +11,7 @@ const StudentDashboard = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate(); // Add this
-
+  const {studentData,logoutStudent} = useContext(ContextAPI);
   const typingMessages = [
     "Join Live Quiz Instantly ⚡",
     "Track Your Progress 📊",
@@ -211,8 +212,8 @@ const StudentDashboard = () => {
           <div className="user-profile">
             <div className="user-avatar">S</div>
             <div className="user-info">
-              <h4>Alex Johnson</h4>
-              <p>Physics 101 • Roll No: 25</p>
+              <h4>{studentData.name}</h4>
+              {/* <p>Physics 101 • Roll No: 25</p> */}
             </div>
           </div>
         </div>
@@ -427,7 +428,7 @@ const StudentDashboard = () => {
               <i className="fas fa-cog"></i> Settings
             </button>
             <button onClick={() => {
-              alert('Logged out successfully!');
+              logoutStudent
               navigate('/');
             }}>
               <i className="fas fa-sign-out-alt"></i> Logout
