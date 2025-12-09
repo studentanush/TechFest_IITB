@@ -66,6 +66,7 @@ io.on("connection", (socket) => {
     console.log(`${playerName} joined room ${roomCode}`);
 
     io.to(roomCode).emit("updatePlayers", Array.from(room.players.values()));
+    adminNamespace.to(roomCode).emit("updatePlayers", Array.from(room.players.values()));
 
     callback({ success: true });
   });
@@ -73,6 +74,7 @@ io.on("connection", (socket) => {
   socket.on(
     "submitAnswer",
     ({ roomCode, answer, correctAnswer, timeTaken, totalTime }, callback) => {
+      console.log("time taken : " + timeTaken );
       const room = rooms.get(roomCode);
       if (!room) {
         callback({ error: "Room not found" });
@@ -96,9 +98,9 @@ io.on("connection", (socket) => {
           score,
         }))
         .sort((a, b) => b.score - a.score);
-
+        console.log(leaderboard);
       io.to(roomCode).emit("leaderboardUpdate", leaderboard);
-
+        adminNamespace.to(roomCode).emit("leaderboardUpdate", leaderboard);
       callback({
         correct: isCorrect,
         earnedPoints: points,
@@ -140,9 +142,10 @@ adminNamespace.on("connection", (socket) => {
       players: new Map(),
       scores: new Map(),
     });
-
-    console.log(`Room ${roomCode} created by ${hostName}`);x
-
+    const room = rooms.get(roomCode);
+    console.log(`Room ${roomCode} created by ${hostName}`);
+    socket.join(roomCode);
+    io.to(roomCode).emit("quiztime",quizTime);
     callback({ roomCode });
   });
 
@@ -154,7 +157,7 @@ adminNamespace.on("connection", (socket) => {
     }
 
     room.play = play;
-
+    console.log(room);  
     // Inform all players that quiz started
     io.to(roomCode).emit("quizStarted", play );
 
@@ -166,7 +169,10 @@ adminNamespace.on("connection", (socket) => {
       callback({ error: "Room not found" });
       return;
     }
-
+     const room = rooms.get(roomCode);
+    
+    
+    io.to(roomCode).emit("quiztime",room.quizTime);
     io.to(roomCode).emit("newQuestion", question);
 
     callback({ status: "sent" });

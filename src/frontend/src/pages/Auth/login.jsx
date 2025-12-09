@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
+import axios from 'axios';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -47,22 +48,30 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      setLoading(false);
-      return;
-    }
+    // const validationErrors = validateForm();
+    // if (Object.keys(validationErrors).length > 0) {
+    //   setErrors(validationErrors);
+    //   setLoading(false);
+    //   return;
+    // }
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Logging in:', { ...formData, rememberMe });
+      const response = await axios.post("http://localhost:5000/api/auth/login",formData);
+      console.log(response);
+
+      const token = response.data.token;
+      const userDetails  = {
+          name:response.data.user.name,
+          email:response.data.user.email,
+          token:token,
+      }
       
+      localStorage.setItem('user_info', userDetails);
+        console.log("stored in local storage")
       // Store token if remember me is checked
       if (rememberMe) {
-        localStorage.setItem('auth_token', 'simulated_token');
+        
       } else {
         sessionStorage.setItem('auth_token', 'simulated_token');
       }
