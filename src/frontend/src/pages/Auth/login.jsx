@@ -68,7 +68,7 @@ const Login = () => {
           token:token,
       };
       console.log(userDetails)
-      //localStorage.removeItem('user_info');
+      localStorage.removeItem('user_info');
       localStorage.setItem('user_info', JSON.stringify(userDetails));
         console.log("stored in local storage")
       // Store token if remember me is checked
