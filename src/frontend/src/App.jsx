@@ -13,6 +13,7 @@ import LandingPage from './pages/Landing/LandingPage'
 import Login from './pages/Auth/login'
 import Register from './pages/Auth/Register'
 import StudentDashboard from './pages/Student/Dashboard'
+import Reports from './pages/Educator/Reports'
 
 function App() {
   
@@ -24,15 +25,16 @@ function App() {
         
         <Route path = "/player" element = {<Player/>}></Route>
         <Route path="/adminQ" element = {<Admin/>}></Route>
-        <Route path="/admin/dashboard" element = {<EducatorDashboard/>}></Route> 
-        <Route path="/liveQuiz" element = {<LiveQuiz/>}></Route> 
+        <Route path="/educator/dashboard" element = {<EducatorDashboard/>}></Route> 
+        <Route path="/educator/live-quiz" element = {<LiveQuiz/>}></Route> 
         <Route path="/generateQuiz" element = {<GeneratedQuizzes/>}></Route> 
-        <Route path="/chat" element = {<Chat/>}></Route> 
+        <Route path="/educator/chat" element = {<Chat/>}></Route> 
         <Route path="/attendQuiz" element = {<AttendQuiz/>}></Route> 
         <Route path="/" element = {<LandingPage/>}></Route> 
         <Route path="/login" element = {<Login/>}></Route> 
         <Route path="/register" element = {<Register/>}></Route> 
         <Route path="/student/dashboard" element = {<StudentDashboard/>}></Route> 
+        <Route path="/educator/reports" element = {<Reports/>}></Route> 
        
       </Routes>
     </>

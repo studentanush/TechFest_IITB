@@ -74,29 +74,37 @@ const allQuestions = [
 
 export const ContextAPI = createContext();
 const Context = (props) => {
-   const [userData,setUserData] = useState({});
-
+   const [studentData,setStudentData] = useState({});
+    const [educatorData,setEducatorData] = useState({});
    useEffect(()=>{
     console.log("heher in context")
-        const userDetails = localStorage.getItem('user_info');
-        if(userData){
-            const parseData = JSON.parse(userDetails);
+    
+        const stuDetails = localStorage.getItem('stu_info');
+        if(stuDetails){
+            const parseData = JSON.parse(stuDetails);
             console.log(parseData)
-            setUserData(parseData);
+            setStudentData(parseData);
+        }
+        const eduDetails = localStorage.getItem('edu_info');
+        if(eduDetails){
+            const parseData = JSON.parse(eduDetails);
+            setEducatorData(parseData);
         }
      
    },[])
-   const logout = () => {
-        setUserData(null);
-        localStorage.removeItem('user_info');
+   const logoutStudent = () => {
+        setStudentData(null);
+        localStorage.removeItem('stu_info');
        
     };
     return (
 
         <ContextAPI.Provider value={{
-          userData,
-          setUserData,
-          logout
+          studentData,
+          setStudentData,
+          educatorData,
+          setEducatorData,
+          logoutStudent,
             
         }}>
             {props.children}

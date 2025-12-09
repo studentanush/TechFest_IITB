@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './EducatorDashboard.css';
+import { ContextAPI } from '../../Context';
 
 const EducatorDashboard = () => {
   const [typingText, setTypingText] = useState('');
   const [notifications] = useState(3);
   const navigate = useNavigate();
-  
+  const {educatorData} = useContext(ContextAPI);
   const welcomeMessages = [
     "Create engaging quizzes in seconds",
     "Track student progress in real-time",
@@ -187,7 +188,7 @@ const EducatorDashboard = () => {
               <i className="fas fa-chalkboard-teacher"></i>
             </div>
             <div className="user-info">
-              <h4>Dr. Sarah Johnson</h4>
+              <h4>{educatorData.name}</h4>
               <p>Physics Department</p>
             </div>
             <i className="fas fa-chevron-down" style={{marginLeft: '10px'}}></i>
@@ -200,7 +201,7 @@ const EducatorDashboard = () => {
         {/* Welcome Section */}
         <section className="welcome-section">
           <h1>
-            Welcome back, <span className="highlight">Dr. Sharma</span>! 👋
+            Welcome back, <span className="highlight">{educatorData.name}</span>! 👋
           </h1>
           <p>
             Ready to create some amazing learning experiences today?

@@ -68,8 +68,14 @@ const Login = () => {
           token:token,
       };
       console.log(userDetails)
-      localStorage.removeItem('user_info');
-      localStorage.setItem('user_info', JSON.stringify(userDetails));
+      //localStorage.removeItem('user_info');
+
+      if(userDetails.role=='educator'){
+          localStorage.setItem('edu_info',JSON.stringify(userDetails))
+      }else{
+           localStorage.setItem('stu_info', JSON.stringify(userDetails));
+      }
+     
         console.log("stored in local storage")
       // Store token if remember me is checked
       if (rememberMe) {
@@ -79,7 +85,12 @@ const Login = () => {
       }
       
       // Redirect to dashboard
-      navigate('/student/dashboard');
+      if(userDetails.role=='student'){
+        navigate('/student/dashboard');
+      }else{
+        navigate('/admin/dashboard');
+      }
+      
       
     } catch (error) {
       setErrors({ general: 'Invalid email or password' });

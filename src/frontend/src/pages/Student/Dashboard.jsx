@@ -11,7 +11,7 @@ const StudentDashboard = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate(); // Add this
-  const {userData,logout} = useContext(ContextAPI);
+  const {studentData,logoutStudent} = useContext(ContextAPI);
   const typingMessages = [
     "Join Live Quiz Instantly ⚡",
     "Track Your Progress 📊",
@@ -212,7 +212,7 @@ const StudentDashboard = () => {
           <div className="user-profile">
             <div className="user-avatar">S</div>
             <div className="user-info">
-              <h4>{userData.name}</h4>
+              <h4>{studentData.name}</h4>
               {/* <p>Physics 101 • Roll No: 25</p> */}
             </div>
           </div>
@@ -428,7 +428,7 @@ const StudentDashboard = () => {
               <i className="fas fa-cog"></i> Settings
             </button>
             <button onClick={() => {
-              logout
+              logoutStudent
               navigate('/');
             }}>
               <i className="fas fa-sign-out-alt"></i> Logout
