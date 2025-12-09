@@ -19,20 +19,8 @@ const AttendQuiz = () => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Dynamic grid class based on question count
-  const getGridClass = (count) => {
-    if (count <= 15) return '';
-    if (count <= 30) return 'large-set';
-    return 'xlarge-set';
-  };
-
-  const getLegendClass = (count) => {
-    return count > 20 ? 'many-questions' : '';
-  };
-
   // ==================== BACKEND INTEGRATION FUNCTIONS ====================
 
-  // Fetch quiz from backend (Ready for API integration)
   const fetchQuizFromBackend = async (quizId) => {
     try {
       setLoading(true);
@@ -56,7 +44,6 @@ const AttendQuiz = () => {
     }
   };
 
-  // Submit answers to backend (Ready for API integration)
   const submitAnswersToBackend = async (quizId, answers) => {
     try {
       setSubmitting(true);
@@ -91,7 +78,6 @@ const AttendQuiz = () => {
     }
   };
 
-  // Save answer to backend (Auto-save functionality)
   const saveAnswerToBackend = async (questionId, answer) => {
     try {
       // REAL API CALL - UNCOMMENT WHEN READY:
@@ -183,13 +169,12 @@ const AttendQuiz = () => {
     return 'not-answered';
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'answered': return '#00ff88';
-      case 'skipped': return '#ff6b6b';
-      case 'marked': return '#8a2be2';
-      default: return 'rgba(255, 255, 255, 0.15)';
-    }
+  // Dynamic grid calculation based on question count
+  const getGridColumns = (count) => {
+    if (count <= 30) return 5;
+    if (count <= 50) return 6;
+    if (count <= 75) return 7;
+    return 8;
   };
 
   // ==================== QUESTION HANDLERS ====================
@@ -217,9 +202,10 @@ const AttendQuiz = () => {
   const goToQuestion = (index) => {
     if (index >= 0 && index < questions.length) {
       setCurrentQuestion(index);
-      // Reset selection state for new question
-      const currentQId = questions[currentQuestion].id;
+      // Load saved state for new question
+      const currentQId = questions[index].id;
       setSelectedOption(questionStatus[currentQId]?.selectedOption || null);
+      setTranscript(questionStatus[currentQId]?.voiceAnswer || '');
     }
   };
 
@@ -256,6 +242,7 @@ const AttendQuiz = () => {
       skipped: true,
       answered: false,
       selectedOption: null,
+      marked: false, // Reset marked when skipping
     };
     
     setQuestionStatus(prev => ({
@@ -271,16 +258,26 @@ const AttendQuiz = () => {
     }
   };
 
-  const handleMarkReview = () => {
+  const handleMarkReview = async () => {
     const questionId = questions[currentQuestion].id;
+    const currentStatus = questionStatus[questionId];
+    const newMarkedState = !currentStatus.marked;
+    
+    const newStatus = {
+      ...currentStatus,
+      marked: newMarkedState,
+    };
     
     setQuestionStatus(prev => ({
       ...prev,
-      [questionId]: {
-        ...prev[questionId],
-        marked: !prev[questionId].marked,
-      }
+      [questionId]: newStatus
     }));
+
+    // Save marked status to backend
+    await saveAnswerToBackend(questionId, {
+      ...currentStatus,
+      marked: newMarkedState
+    });
   };
 
   const handleClearResponse = async () => {
@@ -293,6 +290,7 @@ const AttendQuiz = () => {
       ...questionStatus[questionId],
       answered: false,
       skipped: false,
+      marked: false, // Reset marked when clearing response
       selectedOption: null,
       voiceAnswer: null,
     };
@@ -310,14 +308,61 @@ const AttendQuiz = () => {
 
   const handleStartRecording = () => {
     setIsRecording(true);
-    // In real app: Initialize Web Speech API or external service
-    setTimeout(() => {
-      setTranscript("This is a mock transcript. In real app, this would be actual speech-to-text.");
-    }, 2000);
+    
+    // Web Speech API implementation
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        setTranscript(finalTranscript + interimTranscript);
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+      };
+      
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+      
+      recognition.start();
+      
+      // Store recognition instance to stop it later
+      window.currentRecognition = recognition;
+    } else {
+      // Fallback for browsers without speech recognition
+      alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+      setIsRecording(false);
+    }
   };
 
   const handleStopRecording = async () => {
     setIsRecording(false);
+    
+    // Stop the speech recognition
+    if (window.currentRecognition) {
+      window.currentRecognition.stop();
+      window.currentRecognition = null;
+    }
+    
     const questionId = questions[currentQuestion].id;
     
     const newStatus = {
@@ -388,14 +433,14 @@ const AttendQuiz = () => {
     // Generate 25 questions for testing
     const questions = Array.from({ length: 25 }, (_, i) => ({
       id: `q${i + 1}`,
-      text: `Question ${i + 1}: A car accelerates uniformly from 0 to ${72 + i} km/h in 10 seconds. What is the acceleration?`,
+      text: `A car accelerates uniformly from 0 to ${72 + i} km/h in 10 seconds. What is the acceleration?`,
       options: [
         { id: 'a', text: `${2 + i * 0.5} m/s²` },
         { id: 'b', text: `${5 + i * 0.5} m/s²` },
         { id: 'c', text: `${7.2 + i * 0.5} m/s²` },
         { id: 'd', text: `${10 + i * 0.5} m/s²` }
       ],
-      type: i % 5 === 0 ? 'voice' : 'mcq', // Every 5th question is voice
+      type: i % 8 === 0 ? 'voice' : 'mcq', // Every 8th question is voice
       correctAnswer: 'a',
       marks: 1,
       difficulty: i % 3 === 0 ? 'easy' : i % 3 === 1 ? 'medium' : 'hard',
@@ -444,11 +489,9 @@ const AttendQuiz = () => {
   if (loading) {
     return (
       <div className="attend-quiz-loading">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <h2>Loading Quiz...</h2>
-          <p>Preparing your test environment</p>
-        </div>
+        <div className="loading-spinner"></div>
+        <h2>Loading Quiz...</h2>
+        <p>Preparing your test environment</p>
       </div>
     );
   }
@@ -456,23 +499,21 @@ const AttendQuiz = () => {
   if (error) {
     return (
       <div className="attend-quiz-error">
-        <div className="error-content">
-          <div className="error-icon">❌</div>
-          <h2>Error Loading Quiz</h2>
-          <p>{error}</p>
-          <button 
-            className="retry-btn"
-            onClick={() => window.location.reload()}
-          >
-            <i className="fas fa-redo"></i> Retry
-          </button>
-          <button 
-            className="dashboard-btn"
-            onClick={() => navigate('/student/dashboard')}
-          >
-            <i className="fas fa-home"></i> Back to Dashboard
-          </button>
-        </div>
+        <div className="error-icon">❌</div>
+        <h2>Error Loading Quiz</h2>
+        <p>{error}</p>
+        <button 
+          className="retry-btn"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+        <button 
+          className="dashboard-btn"
+          onClick={() => navigate('/student/dashboard')}
+        >
+          Back to Dashboard
+        </button>
       </div>
     );
   }
@@ -482,267 +523,245 @@ const AttendQuiz = () => {
   }
 
   const currentQ = questions[currentQuestion];
+  const answeredCount = Object.values(questionStatus).filter(q => q.answered).length;
+  const skippedCount = Object.values(questionStatus).filter(q => q.skipped).length;
+  const markedCount = Object.values(questionStatus).filter(q => q.marked).length;
+  const gridCols = getGridColumns(questions.length);
+  const isMarked = questionStatus[currentQ.id]?.marked || false;
 
   return (
     <div className="attend-quiz-container">
       {/* Header */}
       <header className="quiz-header">
-        <div className="quiz-logo" onClick={() => navigate('/student/dashboard')}>
-          <div className="logo-icon">🎓</div>
-          <div className="logo-text">
-            <div className="primary">QUIZZCO.AI</div>
-            <div className="secondary">Attending Quiz</div>
+        <div className="header-left">
+          <div className="quiz-logo" onClick={() => navigate('/student/dashboard')}>
+            <span className="logo-icon">🎓</span>
+            <span className="logo-text">QUIZZCO.AI</span>
           </div>
-        </div>
-        
-        <div className="quiz-title-section">
-          <h1 className="quiz-title">{quizData.title}</h1>
-          <div className="quiz-meta">
-            <span className="meta-item"><i className="fas fa-user"></i> {quizData.teacher}</span>
-            <span className="meta-item"><i className="fas fa-question-circle"></i> {quizData.totalQuestions} Questions</span>
-            <span className="meta-item"><i className="fas fa-clock"></i> {quizData.duration} min</span>
-          </div>
-        </div>
-        
-        <div className="timer-container">
-          <div className="timer-display">
-            <div className="timer-label">Time Left</div>
-            <div className="timer-value">{formatTime(timeLeft)}</div>
-          </div>
-          {submitting && (
-            <div className="submitting-indicator">
-              <div className="submitting-spinner"></div>
-              <span>Submitting...</span>
+          <div className="quiz-info">
+            <h1 className="quiz-title">{quizData.title}</h1>
+            <div className="quiz-meta">
+              <span>👤 {quizData.teacher}</span>
+              <span>📝 {quizData.totalQuestions} Questions</span>
             </div>
-          )}
+          </div>
+        </div>
+        
+        <div className="header-right">
+          <div className="timer-box">
+            <span className="timer-icon">⏱️</span>
+            <div className="timer-content">
+              <div className="timer-label">Time Remaining</div>
+              <div className="timer-value">{formatTime(timeLeft)}</div>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="quiz-main-content">
-        {/* Question Section */}
-        <div className="question-section">
-          <div className="question-header">
-            <div className="question-number">
-              <span className="current">Question {currentQuestion + 1}</span>
-              <span className="total"> of {questions.length}</span>
+      {/* Main Content */}
+      <div className="quiz-body">
+        {/* Main Question Area */}
+        <main className="question-area">
+          {/* Question Header */}
+          <div className="question-header-bar">
+            <div className="question-number-badge">
+              Question {currentQuestion + 1} of {questions.length}
             </div>
-            
-            <div className="question-meta">
+            <div className="question-badges">
               {currentQ.type === 'voice' ? (
-                <span className="type-badge voice">
-                  <i className="fas fa-microphone"></i> Voice Response
-                </span>
+                <span className="badge badge-voice">🎤 Voice</span>
               ) : (
-                <span className="type-badge mcq">
-                  <i className="fas fa-list-ol"></i> Multiple Choice
-                </span>
+                <span className="badge badge-mcq">📋 MCQ</span>
               )}
-              <span className="difficulty-badge">
-                {currentQ.difficulty}
-              </span>
-              <span className="marks-badge">
-                {currentQ.marks} mark{currentQ.marks !== 1 ? 's' : ''}
-              </span>
+              <span className="badge badge-marks">{currentQ.marks} Mark</span>
+              {isMarked && (
+                <span className="badge badge-marked">🔖 Marked</span>
+              )}
             </div>
           </div>
 
-          <div className="question-content">
-            <h2 className="question-text">{currentQ.text}</h2>
+          {/* Question Content */}
+          <div className="question-content-area">
+            <div className="question-text-box">
+              <h2 className="question-text">{currentQ.text}</h2>
+            </div>
             
             {/* MCQ Options */}
             {currentQ.type === 'mcq' && currentQ.options.length > 0 && (
-              <div className="options-grid">
+              <div className="options-container">
                 {currentQ.options.map((option) => (
-                  <div 
+                  <label 
                     key={option.id}
-                    className={`option-item ${
-                      selectedOption === option.id ? 'selected' : ''
-                    }`}
+                    className={`option-card ${selectedOption === option.id ? 'selected' : ''}`}
                     onClick={() => handleOptionSelect(option.id)}
                   >
-                    <div className="option-letter">{option.id.toUpperCase()}</div>
-                    <div className="option-text">{option.text}</div>
+                    <div className="option-label">{option.id.toUpperCase()}</div>
+                    <div className="option-content">{option.text}</div>
                     {selectedOption === option.id && (
-                      <div className="option-check">
-                        <i className="fas fa-check"></i>
-                      </div>
+                      <div className="option-checkmark">✓</div>
                     )}
-                  </div>
+                  </label>
                 ))}
               </div>
             )}
             
             {/* Voice Interface */}
             {currentQ.type === 'voice' && (
-              <div className="voice-section">
-                <div className="voice-instructions">
-                  <p><i className="fas fa-info-circle"></i> Click the record button and speak your answer clearly.</p>
+              <div className="voice-answer-section">
+                <div className="voice-instruction">
+                  <span className="info-icon">ℹ️</span>
+                  Click the record button and speak your answer clearly.
                 </div>
                 
-                <div className="voice-controls">
+                <div className="voice-controls-center">
                   {!isRecording ? (
                     <button 
-                      className="voice-btn record-btn"
+                      className="record-button"
                       onClick={handleStartRecording}
                       disabled={submitting}
                     >
-                      <i className="fas fa-microphone"></i> Start Recording
+                      <span className="record-icon">🎤</span>
+                      Start Recording
                     </button>
                   ) : (
                     <button 
-                      className="voice-btn stop-btn"
+                      className="stop-button"
                       onClick={handleStopRecording}
                     >
-                      <i className="fas fa-stop"></i> Stop Recording
+                      <span className="stop-icon">⏹️</span>
+                      Stop Recording
                     </button>
                   )}
                   
                   {isRecording && (
-                    <div className="recording-status">
-                      <div className="pulse-dot"></div>
-                      <span>Recording... Speak now</span>
+                    <div className="recording-indicator">
+                      <span className="pulse-circle"></span>
+                      Recording in progress...
                     </div>
                   )}
                 </div>
                 
                 {transcript && (
-                  <div className="transcript-box">
-                    <h4><i className="fas fa-scroll"></i> Your Answer:</h4>
-                    <p className="transcript">{transcript}</p>
+                  <div className="transcript-display">
+                    <h4>Your Answer:</h4>
+                    <p>{transcript}</p>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Action Controls */}
-          <div className="action-controls">
-            <button 
-              className="control-btn clear"
-              onClick={handleClearResponse}
-              disabled={currentQ.type === 'voice' || submitting}
-            >
-              <i className="fas fa-eraser"></i> Clear
-            </button>
+          {/* Action Buttons */}
+          <div className="question-actions">
+            <div className="action-left">
+              <button 
+                className={`btn ${isMarked ? 'btn-marked' : 'btn-secondary'}`}
+                onClick={handleMarkReview}
+                disabled={submitting}
+              >
+                {isMarked ? '🔖 Unmark' : '🔖 Mark'}
+              </button>
+              <button 
+                className="btn btn-secondary"
+                onClick={handleClearResponse}
+                disabled={submitting || (currentQ.type === 'mcq' && !selectedOption) || (currentQ.type === 'voice' && !transcript)}
+              >
+                🗑️ Clear
+              </button>
+            </div>
             
-            <button 
-              className="control-btn mark"
-              onClick={handleMarkReview}
-              disabled={submitting}
-            >
-              <i className="fas fa-bookmark"></i> {questionStatus[currentQ.id]?.marked ? 'Unmark' : 'Mark'}
-            </button>
-            
-            <button 
-              className="control-btn skip"
-              onClick={handleSkip}
-              disabled={submitting}
-            >
-              <i className="fas fa-forward"></i> Skip
-            </button>
-            
-            <button 
-              className="control-btn save-next primary"
-              onClick={handleSaveNext}
-              disabled={submitting}
-            >
-              {currentQuestion === questions.length - 1 ? (
-                <>
-                  <i className="fas fa-paper-plane"></i> {submitting ? 'Submitting...' : 'Submit'}
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-save"></i> Save & Next
-                </>
-              )}
-            </button>
+            <div className="action-right">
+              <button 
+                className="btn btn-outline"
+                onClick={handleSkip}
+                disabled={submitting}
+              >
+                Skip
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={handleSaveNext}
+                disabled={submitting}
+              >
+                {currentQuestion === questions.length - 1 ? (
+                  submitting ? 'Submitting...' : 'Submit'
+                ) : (
+                  'Save & Next'
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        </main>
 
-        {/* Navigation Section */}
-        <div className="navigation-section">
-          <div className="nav-header">
-            <h3><i className="fas fa-bars"></i> Questions ({questions.length})</h3>
-            <div className="question-stats-compact">
-              <span className="stat answered">
-                {Object.values(questionStatus).filter(q => q.answered).length} A
-              </span>
-              <span className="stat skipped">
-                {Object.values(questionStatus).filter(q => q.skipped).length} S
-              </span>
-              <span className="stat marked">
-                {Object.values(questionStatus).filter(q => q.marked).length} M
-              </span>
+        {/* Right Sidebar - Question Palette */}
+        <aside className="question-sidebar">
+          <div className="sidebar-header">
+            <h3>Question Palette</h3>
+            <div className="palette-stats">
+              <span className="stat-answered" title="Answered">{answeredCount}</span>
+              <span className="stat-skipped" title="Skipped">{skippedCount}</span>
+              <span className="stat-marked" title="Marked">{markedCount}</span>
             </div>
           </div>
           
-          <div className={`questions-navigation ${getGridClass(questions.length)}`}>
-            {questions.map((question, index) => {
-              const status = getQuestionStatus(question.id);
-              const isCurrent = index === currentQuestion;
-              
-              return (
-                <button
-                  key={question.id}
-                  className={`question-dot ${status} ${isCurrent ? 'current' : ''}`}
-                  onClick={() => !submitting && goToQuestion(index)}
-                  disabled={submitting}
-                  style={{
-                    backgroundColor: getStatusColor(status),
-                    border: isCurrent ? '2px solid #ffffff' : 'none',
-                    opacity: submitting ? 0.7 : 1
-                  }}
-                  title={`Question ${index + 1} (${status})`}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
+          <div className="question-palette-wrapper">
+            <div 
+              className="question-palette"
+              style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}
+            >
+              {questions.map((question, index) => {
+                const status = getQuestionStatus(question.id);
+                const isCurrent = index === currentQuestion;
+                const isQuestionMarked = questionStatus[question.id]?.marked || false;
+                
+                return (
+                  <button
+                    key={question.id}
+                    className={`palette-btn ${status} ${isCurrent ? 'active' : ''} ${isQuestionMarked ? 'marked-badge' : ''}`}
+                    onClick={() => !submitting && goToQuestion(index)}
+                    disabled={submitting}
+                    title={`Question ${index + 1} - ${status === 'answered' ? 'Answered' : status === 'skipped' ? 'Skipped' : status === 'marked' ? 'Marked' : 'Not Answered'}`}
+                  >
+                    {index + 1}
+                    {isQuestionMarked && <span className="mark-indicator">🔖</span>}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           
-          <div className={`status-legend-compact ${getLegendClass(questions.length)}`}>
-            <div className="legend">
-              <div className="color-dot answered"></div>
+          <div className="palette-legend">
+            <div className="legend-item">
+              <span className="legend-dot answered"></span>
               <span>Answered</span>
             </div>
-            <div className="legend">
-              <div className="color-dot skipped"></div>
+            <div className="legend-item">
+              <span className="legend-dot not-answered"></span>
+              <span>Not Answered</span>
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot marked"></span>
+              <span>Marked</span>
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot skipped"></span>
               <span>Skipped</span>
             </div>
-            <div className="legend">
-              <div className="color-dot marked"></div>
-              <span>Marked</span>
+            <div className="legend-item">
+              <span className="legend-dot current">📍</span>
+              <span>Current</span>
             </div>
           </div>
           
           <button 
-            className="submit-button"
+            className="submit-quiz-btn"
             onClick={handleSubmitQuiz}
             disabled={submitting}
           >
-            <i className="fas fa-flag-checkered"></i> 
             {submitting ? 'Submitting...' : 'Submit Quiz'}
           </button>
-        </div>
+        </aside>
       </div>
-
-      {/* Footer */}
-      <footer className="quiz-footer">
-        <div className="progress-info">
-          <div className="progress-text">
-            Progress: <strong>{currentQuestion + 1}</strong> of <strong>{questions.length}</strong> questions
-            <span className="time-remaining">
-              • Time remaining: <strong>{formatTime(timeLeft)}</strong>
-            </span>
-          </div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
