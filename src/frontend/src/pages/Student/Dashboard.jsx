@@ -11,7 +11,7 @@ const StudentDashboard = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate(); // Add this
-  const {userData} = useContext(ContextAPI);
+  const {userData,logout} = useContext(ContextAPI);
   const typingMessages = [
     "Join Live Quiz Instantly ⚡",
     "Track Your Progress 📊",
@@ -428,7 +428,7 @@ const StudentDashboard = () => {
               <i className="fas fa-cog"></i> Settings
             </button>
             <button onClick={() => {
-              alert('Logged out successfully!');
+              logout
               navigate('/');
             }}>
               <i className="fas fa-sign-out-alt"></i> Logout

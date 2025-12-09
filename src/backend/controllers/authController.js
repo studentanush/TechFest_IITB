@@ -72,7 +72,7 @@ export const login = async (req, res) => {
     const userData = {
       name:user.name,
       email:user.email,
-      usertype:user.role,
+      role:user.role,
     }
 
     res.json({

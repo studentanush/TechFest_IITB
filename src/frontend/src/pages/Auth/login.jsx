@@ -58,16 +58,18 @@ const Login = () => {
     try {
       
       const response = await axios.post("http://localhost:5000/api/auth/login",formData);
-      console.log(response);
+      console.log(response.data.message);
 
       const token = response.data.token;
       const userDetails  = {
-          name:response.data.user.name,
-          email:response.data.user.email,
+          name:response?.data?.user.name,
+          email:response?.data?.user.email,
+          role:response?.data?.user.role,
           token:token,
-      }
-      
-      localStorage.setItem('user_info', userDetails);
+      };
+      console.log(userDetails)
+      //localStorage.removeItem('user_info');
+      localStorage.setItem('user_info', JSON.stringify(userDetails));
         console.log("stored in local storage")
       // Store token if remember me is checked
       if (rememberMe) {

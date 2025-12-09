@@ -77,18 +77,26 @@ const Context = (props) => {
    const [userData,setUserData] = useState({});
 
    useEffect(()=>{
-        const userData = localStorage.getItem('user-info');
+    console.log("heher in context")
+        const userDetails = localStorage.getItem('user_info');
         if(userData){
-            const parseData = JSON.parse(userData);
+            const parseData = JSON.parse(userDetails);
+            console.log(parseData)
             setUserData(parseData);
         }
      
    },[])
+   const logout = () => {
+        setUserData(null);
+        localStorage.removeItem('user_info');
+       
+    };
     return (
 
         <ContextAPI.Provider value={{
           userData,
-          setUserData
+          setUserData,
+          logout
             
         }}>
             {props.children}
