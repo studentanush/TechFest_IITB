@@ -29,7 +29,7 @@ function App() {
         <Route path="/educator/live-quiz" element = {<LiveQuiz/>}></Route> 
         <Route path="/generateQuiz" element = {<GeneratedQuizzes/>}></Route> 
         <Route path="/educator/chat" element = {<Chat/>}></Route> 
-        <Route path="/attendQuiz" element = {<AttendQuiz/>}></Route> 
+        <Route path="/attend-quiz" element = {<AttendQuiz/>}></Route> 
         <Route path="/" element = {<LandingPage/>}></Route> 
         <Route path="/login" element = {<Login/>}></Route> 
         <Route path="/register" element = {<Register/>}></Route> 

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import axios from 'axios';
+import { ContextAPI } from '../../Context';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-
+  const {loginBro} = useContext(ContextAPI);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -69,12 +70,12 @@ const Login = () => {
       };
       console.log(userDetails)
       //localStorage.removeItem('user_info');
-
-      if(userDetails.role=='educator'){
-          localStorage.setItem('edu_info',JSON.stringify(userDetails))
-      }else{
-           localStorage.setItem('stu_info', JSON.stringify(userDetails));
-      }
+      loginBro(userDetails);
+      // if(userDetails.role=='educator'){
+      //     sessionStorage.setItem('edu_info',JSON.stringify(userDetails))
+      // }else{
+      //      sessionStorage.setItem('stu_info', JSON.stringify(userDetails));
+      // }
      
         console.log("stored in local storage")
       // Store token if remember me is checked
