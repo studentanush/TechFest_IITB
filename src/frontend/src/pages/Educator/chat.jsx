@@ -19,7 +19,7 @@ function Chat() {
   });
   const [showAgenticModal, setShowAgenticModal] = useState(false);
   const [agenticUrl, setAgenticUrl] = useState('');
-  
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -35,60 +35,60 @@ function Chat() {
   };
 
   const callLLM = async (userPrompt, context) => {
-  const prompt = userPrompt.toLowerCase();
+    const prompt = userPrompt.toLowerCase();
 
-  if (prompt.match(/^(hi|hello|hey|greetings)/)) {
-    return "Hello! How can I help you today? If you'd like to generate a quiz, please upload a document first.";
-  }
+    if (prompt.match(/^(hi|hello|hey|greetings)/)) {
+      return "Hello! How can I help you today? If you'd like to generate a quiz, please upload a document first.";
+    }
 
-  if (prompt.includes('help') || prompt.includes('how')) {
-    return "I can help you generate quizzes from your documents! Here's how:\n1. Upload a PDF, DOCX, or TXT file\n2. Tell me how many questions you want (minimum 5)\n3. I'll generate a comprehensive quiz for you\n\nYou can also ask me to regenerate questions or modify the quiz.";
-  }
+    if (prompt.includes('help') || prompt.includes('how')) {
+      return "I can help you generate quizzes from your documents! Here's how:\n1. Upload a PDF, DOCX, or TXT file\n2. Tell me how many questions you want (minimum 5)\n3. I'll generate a comprehensive quiz for you\n\nYou can also ask me to regenerate questions or modify the quiz.";
+    }
 
-  if (!context.hasFile && prompt.match(/\d+\s*(questions?|quiz)/)) {
-    // FIX: Instead of saying "upload document", handle text prompts
+    if (!context.hasFile && prompt.match(/\d+\s*(questions?|quiz)/)) {
+      // FIX: Instead of saying "upload document", handle text prompts
+      const numberMatch = prompt.match(/(\d+)\s*(questions?|quiz)?/);
+      if (numberMatch) {
+        const num = parseInt(numberMatch[1]);
+        if (num < 5) {
+          return "I need to generate at least 5 questions. Please request 5 or more questions.";
+        }
+        return `generate_text:${num}`;  // New: for text-based generation
+      }
+    }
+
+    if (prompt.includes('regenerate') || prompt.includes('try again') || prompt.includes('redo')) {
+      if (context.lastQuizParams) {
+        return `regenerate:${context.lastQuizParams.numQuestions}`;
+      } else {
+        return "I don't have any previous quiz to regenerate. Please tell me how many questions you'd like to generate.";
+      }
+    }
+
+    if (prompt.includes('more questions') || prompt.includes('add more')) {
+      return "Sure! How many additional questions would you like me to generate?";
+    }
+
+    if (prompt.includes('easier') || prompt.includes('harder') || prompt.includes('difficulty')) {
+      return "I understand you'd like questions with different difficulty. Please specify how many questions you need, and I'll generate a new quiz.";
+    }
+
     const numberMatch = prompt.match(/(\d+)\s*(questions?|quiz)?/);
-    if (numberMatch) {
+    if (numberMatch && context.hasFile) {
       const num = parseInt(numberMatch[1]);
       if (num < 5) {
         return "I need to generate at least 5 questions. Please request 5 or more questions.";
       }
-      return `generate_text:${num}`;  // New: for text-based generation
+      return `generate:${num}`;
     }
-  }
 
-  if (prompt.includes('regenerate') || prompt.includes('try again') || prompt.includes('redo')) {
-    if (context.lastQuizParams) {
-      return `regenerate:${context.lastQuizParams.numQuestions}`;
-    } else {
-      return "I don't have any previous quiz to regenerate. Please tell me how many questions you'd like to generate.";
+    if (context.hasFile) {
+      return "I have your document ready. How many questions would you like me to generate? (Minimum 5 questions)";
     }
-  }
 
-  if (prompt.includes('more questions') || prompt.includes('add more')) {
-    return "Sure! How many additional questions would you like me to generate?";
-  }
-
-  if (prompt.includes('easier') || prompt.includes('harder') || prompt.includes('difficulty')) {
-    return "I understand you'd like questions with different difficulty. Please specify how many questions you need, and I'll generate a new quiz.";
-  }
-
-  const numberMatch = prompt.match(/(\d+)\s*(questions?|quiz)?/);
-  if (numberMatch && context.hasFile) {
-    const num = parseInt(numberMatch[1]);
-    if (num < 5) {
-      return "I need to generate at least 5 questions. Please request 5 or more questions.";
-    }
-    return `generate:${num}`;
-  }
-
-  if (context.hasFile) {
-    return "I have your document ready. How many questions would you like me to generate? (Minimum 5 questions)";
-  }
-
-  // FIX: Default return for text prompts without file
-  return `generate_text_prompt:${userPrompt}`;
-};
+    // FIX: Default return for text prompts without file
+    return `generate_text_prompt:${userPrompt}`;
+  };
 
 
   const handleFileSelect = (e) => {
@@ -120,21 +120,74 @@ function Chat() {
     }
   };
 
- const generateQuiz = async (numQuestions, isTextPrompt = false, textPrompt = '') => {
-  setIsLoading(true);
-  
-  if (isTextPrompt) {
-    // Handle text-only prompts (Gemini API)
-    addAssistantMessage(`Generating ${numQuestions} questions from your prompt. This may take a moment...`);
-    
+  const generateQuiz = async (numQuestions, isTextPrompt = false, textPrompt = '') => {
+    setIsLoading(true);
+
+    if (isTextPrompt) {
+      // Handle text-only prompts (Gemini API)
+      addAssistantMessage(`Generating ${numQuestions} questions from your prompt. This may take a moment...`);
+
+      try {
+
+
+        const response = await fetch("http://localhost:5000/generate-quiz", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text: textPrompt,
+            numQuestions
+          })
+        });
+
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+
+        setGeneratedQuiz(data);
+        setConversationContext(prev => ({
+          ...prev,
+          lastQuizParams: { numQuestions, isTextPrompt: true, textPrompt }
+        }));
+
+        setMessages(prev => [...prev, {
+          type: 'success',
+          content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
+          quizData: data
+        }]);
+      } catch (error) {
+        setMessages(prev => [...prev, {
+          type: 'error',
+          content: `Failed to generate quiz: ${error.message}`,
+        }]);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Handle file-based generation
+    if (!file) {
+      addAssistantMessage("Oops! It seems the file is missing. Please upload a document again.");
+      setIsLoading(false);
+      return;
+    }
+
+    addAssistantMessage(`Generating ${numQuestions} questions from your document. This may take a moment...`);
+
     try {
       const formData = new FormData();
-      formData.append('text', textPrompt);
-      formData.append('numQuestions', numQuestions);
+      formData.append('prompt', `Generate ${numQuestions} questions`);
+      formData.append('file', file);
 
-      const response = await fetch("http://localhost:5000/generate-quiz", {
-        method: "POST",
-        body: formData
+      const response = await fetch('http://localhost:8000/generate-quiz', {
+        method: 'POST',
+        body: formData,
       });
 
       if (!response.ok) {
@@ -142,19 +195,23 @@ function Chat() {
       }
 
       const data = await response.json();
-      console.log(data);
-      
-      setGeneratedQuiz(data);
-      setConversationContext(prev => ({
-        ...prev,
-        lastQuizParams: { numQuestions, isTextPrompt: true, textPrompt }
-      }));
-      
-      setMessages(prev => [...prev, {
-        type: 'success',
-        content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
-        quizData: data
-      }]);
+
+      if (typeof data === 'string' && data.includes('MINIMUM')) {
+        addAssistantMessage(data);
+      } else {
+        setGeneratedQuiz(data);
+        setConversationContext(prev => ({
+          ...prev,
+          lastQuizParams: { numQuestions, fileName: file.name }
+        }));
+
+        setMessages(prev => [...prev, {
+          type: 'success',
+          content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
+          timestamp: new Date(),
+          quizData: data
+        }]);
+      }
     } catch (error) {
       setMessages(prev => [...prev, {
         type: 'error',
@@ -163,112 +220,66 @@ function Chat() {
     } finally {
       setIsLoading(false);
     }
-    return;
-  }
+  };
 
-  // Handle file-based generation
-  if (!file) {
-    addAssistantMessage("Oops! It seems the file is missing. Please upload a document again.");
-    setIsLoading(false);
-    return;
-  }
+  const handleSubmit = async () => {
+    if (!input.trim()) return;
 
-  addAssistantMessage(`Generating ${numQuestions} questions from your document. This may take a moment...`);
-
-  try {
-    const formData = new FormData();
-    formData.append('prompt', `Generate ${numQuestions} questions`);
-    formData.append('file', file);
-
-    const response = await fetch('http://localhost:8000/generate-quiz', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (typeof data === 'string' && data.includes('MINIMUM')) {
-      addAssistantMessage(data);
-    } else {
-      setGeneratedQuiz(data);
-      setConversationContext(prev => ({
-        ...prev,
-        lastQuizParams: { numQuestions, fileName: file.name }
-      }));
-      
-      setMessages(prev => [...prev, {
-        type: 'success',
-        content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
-        timestamp: new Date(),
-        quizData: data
-      }]);
-    }
-  } catch (error) {
+    const userMessage = input.trim();
     setMessages(prev => [...prev, {
-      type: 'error',
-      content: `Failed to generate quiz: ${error.message}`,
+      type: 'user',
+      content: userMessage
     }]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    setInput('');
+    setIsLoading(true);
 
- const handleSubmit = async () => {
-  if (!input.trim()) return;
+    try {
+      const llmResponse = await callLLM(userMessage, conversationContext);
 
-  const userMessage = input.trim();
-  setMessages(prev => [...prev, {
-    type: 'user',
-    content: userMessage
-  }]);
-  setInput('');
-  setIsLoading(true);
-
-  try {
-    const llmResponse = await callLLM(userMessage, conversationContext);
-
-    // FIX: Check if llmResponse exists before calling startsWith
-    if (!llmResponse) {
-      addAssistantMessage("I'm not sure how to help with that. Could you please rephrase?");
-      setIsLoading(false);
-      return;
-    }
-
-    if (llmResponse.startsWith('generate:')) {
-      const numQuestions = parseInt(llmResponse.split(':')[1]);
-      setIsLoading(false);
-      await generateQuiz(numQuestions, false);
-    } else if (llmResponse.startsWith('generate_text:')) {
-      const numQuestions = parseInt(llmResponse.split(':')[1]);
-      setIsLoading(false);
-      await generateQuiz(numQuestions, true, userMessage);
-    } else if (llmResponse.startsWith('generate_text_prompt:')) {
-      const textPrompt = llmResponse.split(':')[1];
-      setIsLoading(false);
-      // Extract number from prompt or default to 5
-      const numMatch = textPrompt.match(/(\d+)/);
-      const numQuestions = numMatch ? parseInt(numMatch[1]) : 5;
-      await generateQuiz(numQuestions, true, textPrompt);
-    } else if (llmResponse.startsWith('regenerate:')) {
-      const numQuestions = parseInt(llmResponse.split(':')[1]);
-      setIsLoading(false);
-      addAssistantMessage("Sure! Let me regenerate the quiz with different questions.");
-      await generateQuiz(numQuestions);
-    } else {
-      setTimeout(() => {
-        addAssistantMessage(llmResponse);
+      // FIX: Check if llmResponse exists before calling startsWith
+      if (!llmResponse) {
+        addAssistantMessage("I'm not sure how to help with that. Could you please rephrase?");
         setIsLoading(false);
-      }, 500);
+        return;
+      }
+
+      if (llmResponse.startsWith('generate:')) {
+        const numQuestions = parseInt(llmResponse.split(':')[1]);
+        setIsLoading(false);
+        await generateQuiz(numQuestions, false);
+      } else if (llmResponse.startsWith('generate_text:')) {
+        const numQuestions = parseInt(llmResponse.split(':')[1]);
+        setIsLoading(true);
+        try{
+          await generateQuiz(numQuestions, true, userMessage);
+        }catch(err){
+          addAssistantMessage(`Failed to generate quiz from text prompt: ${err.message}`);
+        }finally{
+          setIsLoading(false);
+        }
+      } else if (llmResponse.startsWith('generate_text_prompt:')) {
+        const textPrompt = llmResponse.split(':')[1];
+        setIsLoading(false);
+        // Extract number from prompt or default to 5
+        const numMatch = textPrompt.match(/(\d+)/);
+        const numQuestions = numMatch ? parseInt(numMatch[1]) : 5;
+        await generateQuiz(numQuestions, true, textPrompt);
+      } else if (llmResponse.startsWith('regenerate:')) {
+        const numQuestions = parseInt(llmResponse.split(':')[1]);
+        setIsLoading(false);
+        addAssistantMessage("Sure! Let me regenerate the quiz with different questions.");
+        await generateQuiz(numQuestions);
+      } else {
+        setTimeout(() => {
+          addAssistantMessage(llmResponse);
+          setIsLoading(false);
+        }, 500);
+      }
+    } catch (error) {
+      addAssistantMessage(`Sorry, I encountered an error: ${error.message}`);
+      setIsLoading(false);
     }
-  } catch (error) {
-    addAssistantMessage(`Sorry, I encountered an error: ${error.message}`);
-    setIsLoading(false);
-  }
-};
+  };
 
 
   const handleKeyPress = (e) => {
@@ -291,24 +302,24 @@ function Chat() {
   const handleAgenticMode = () => {
     setShowAgenticModal(true);
   };
-  
 
-  const handleAgenticGenerate = async(url) => {
+
+  const handleAgenticGenerate = async (url) => {
     // TODO: Implement agentic mode quiz generation from URL
     console.log('Generating quiz from URL:', agenticUrl);
 
     setShowAgenticModal(false);
     setAgenticUrl(url);
-    const response = await fetch('http://localhost:5000/agentic-mode',{
-      method:"POST",
-      body:url
+    const response = await fetch('http://localhost:5000/agentic-mode', {
+      method: "POST",
+      body: url
     })
 
     const data = response.json()
     setGeneratedQuiz(data)
-    setConversationContext(prev=>({
+    setConversationContext(prev => ({
       ...prev,
-      lastQuizParams:url
+      lastQuizParams: url
     }))
     addAssistantMessage(`I'll generate a quiz from the URL: ${agenticUrl}`);
   };
@@ -323,7 +334,7 @@ function Chat() {
         },
         body: JSON.stringify(quizData)
       });
-      
+
       if (response.ok) {
         addAssistantMessage("âœ… Quiz saved successfully! You can access it from your saved quizzes.");
       } else {
@@ -390,7 +401,7 @@ function Chat() {
                       <h3 className="font-semibold text-gray-800 mb-3 text-base">
                         ðŸ“‹ {msg.quizData.quiz_name}
                       </h3>
-                      
+
                       {/* Questions List */}
                       <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                         {msg.quizData.questions.map((q, idx) => (
@@ -400,13 +411,12 @@ function Chat() {
                               <h4 className="font-semibold text-gray-900 text-sm">
                                 Question {idx + 1}
                               </h4>
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                q.difficulty === 'easy' 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : q.difficulty === 'medium' 
-                                  ? 'bg-yellow-100 text-yellow-700' 
-                                  : 'bg-red-100 text-red-700'
-                              }`}>
+                              <span className={`text-xs px-2 py-1 rounded-full ${q.difficulty === 'easy'
+                                  ? 'bg-green-100 text-green-700'
+                                  : q.difficulty === 'medium'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : 'bg-red-100 text-red-700'
+                                }`}>
                                 {q.difficulty}
                               </span>
                             </div>
@@ -421,13 +431,12 @@ function Chat() {
                               {q.options.map((option, optIdx) => {
                                 const isCorrect = option.startsWith(q.correct_option_letter);
                                 return (
-                                  <div 
-                                    key={optIdx} 
-                                    className={`text-xs px-3 py-2 rounded-md ${
-                                      isCorrect 
-                                        ? 'bg-green-50 border border-green-300 text-green-800 font-medium' 
+                                  <div
+                                    key={optIdx}
+                                    className={`text-xs px-3 py-2 rounded-md ${isCorrect
+                                        ? 'bg-green-50 border border-green-300 text-green-800 font-medium'
                                         : 'bg-gray-50 border border-gray-200 text-gray-700'
-                                    }`}
+                                      }`}
                                   >
                                     {option}
                                     {isCorrect && <span className="ml-2">âœ“</span>}
@@ -447,7 +456,7 @@ function Chat() {
                             {q.sub_topics && q.sub_topics.length > 0 && (
                               <div className="flex gap-1.5 mt-2 flex-wrap">
                                 {q.sub_topics.map((topic, topicIdx) => (
-                                  <span 
+                                  <span
                                     key={topicIdx}
                                     className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full"
                                   >
@@ -509,8 +518,8 @@ function Chat() {
       {/* Header */}
       <div className="bg-[#0c001e] px-6 py-4 ">
         <p className="text-sm text-white text-center ">
-          
-           <span className='font-black'>â„¹ï¸ </span>Create custom quizzes from your documents or give a text prompt</p>
+
+          <span className='font-black'>â„¹ï¸ </span>Create custom quizzes from your documents or give a text prompt</p>
       </div>
 
       {/* Messages Container */}
@@ -541,7 +550,7 @@ function Chat() {
                 <Upload className="w-4 h-4" />
                 Attach
               </button>
-              
+
               <button
                 onClick={handleRegenerate}
                 disabled={!conversationContext.lastQuizParams}
@@ -608,7 +617,7 @@ function Chat() {
                 <X className="w-6 h-6 text-gray-500" />
               </button>
             </div>
-            
+
             <p className="text-sm text-gray-600 mb-4">
               Generate a quiz from a URL
             </p>
@@ -622,7 +631,7 @@ function Chat() {
                   type="url"
                   value={agenticUrl}
                   onChange={(e) => setAgenticUrl(e.target.value)}
-  
+
                   placeholder="https://example.com/article"
                   className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />

@@ -180,11 +180,11 @@ adminNamespace.on("connection", (socket) => {
 });
 
 app.post('/generate-quiz', async (req, res) => {
+  const {text, num_questions} = req.body;
 const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
   const prompt = `
     YOU ARE AN EXPERT QUIZ GENERATOR, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE USER NEED, YOU WILL RECEIVE THE PROMPT.
-    Create EXACTLY {num_questions} number of questions.
-    where {num_questions} is number of questions for which quiz is requested for.
+    Create EXACTLY ${num_questions} number of questions.
 
 
     CRITICAL: Output complete, RETURN A STRICTLY RETURN A VALID JSON WITHOUT ANY DECORATION OF FOLLOWING STRUCTURE;
@@ -192,7 +192,7 @@ const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
 
     Structure:
     - quiz_name: Concise title of 2-3 words summarizing the context
-    - questions: Array with EXACTLY {num_questions} question objects
+    - questions: Array with EXACTLY ${num_questions} question objects
 
 
     Each question object:
@@ -214,10 +214,12 @@ const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
     `
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: prompt+req.body.text
+    contents: prompt+text
   });
   console.log(response.text);
-  return response.text
+  const cleanedResponse = response.text.replace(/```json|```/g, "")
+  console.log("Cleaned Response: ", cleanedResponse);
+  return cleanedResponse;
 })
 
 

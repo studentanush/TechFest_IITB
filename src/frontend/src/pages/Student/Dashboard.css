@@ -40,7 +40,7 @@
   background: rgba(138, 43, 226, 0.1);
   border-radius: 16px;
   border: 1px solid rgba(138, 43, 226, 0.3);
-  transition: all 0.3s ease;
+  /* transition: all 0.3s ease; */
 }
 
 .logo-container:hover {
@@ -278,8 +278,8 @@
   box-shadow: 
     0 8px 32px rgba(138, 43, 226, 0.2), /* Purple shadow instead of black */
     inset 0 1px 0 rgba(138, 43, 226, 0.1); /* Purple inset instead of white */
-  animation: fade-in-up 0.6s ease-out 0.1s both;
-  transition: all 0.3s ease;
+  /* animation: fade-in-up 0.6s ease-out 0.1s both; */
+  /* transition: all 0.3s ease; */
   z-index: 2;
 }
 
@@ -363,7 +363,7 @@
 /* Join Button */
 .join-btn.action-btn {
   background: linear-gradient(135deg, #f72585, #ff006e);
-  padding: 18px 35px;
+  padding: 10px 100px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -907,7 +907,7 @@
   
   /* Responsive for full-width button */
   .quick-actions-single .action-btn {
-    padding: 12px 20px;
+    padding: 20px 20px;
     font-size: 0.95rem;
   }
 }
@@ -948,7 +948,7 @@
   }
   
   .join-btn.action-btn {
-    padding: 15px 25px;
+    padding: 10px 10px;
   }
   
   .footer-links {

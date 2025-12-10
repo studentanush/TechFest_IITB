@@ -12,8 +12,9 @@ import AttendQuiz from './pages/Student/AttendQuiz'
 import LandingPage from './pages/Landing/LandingPage'
 import Login from './pages/Auth/login'
 import Register from './pages/Auth/Register'
-import StudentDashboard from './pages/Student/Dashboard'
+import StudentDashboard from './pages/Student/StudentDashboard'
 import Reports from './pages/Educator/Reports'
+
 
 function App() {
   
@@ -23,8 +24,6 @@ function App() {
 
       <Routes>
         
-        <Route path = "/player" element = {<Player/>}></Route>
-        <Route path="/adminQ" element = {<Admin/>}></Route>
         <Route path="/educator/dashboard" element = {<EducatorDashboard/>}></Route> 
         <Route path="/educator/live-quiz" element = {<LiveQuiz/>}></Route> 
         <Route path="/generatedQuiz" element = {<GeneratedQuizzes/>}></Route> 
