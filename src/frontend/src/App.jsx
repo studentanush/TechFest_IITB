@@ -27,7 +27,7 @@ function App() {
         <Route path="/adminQ" element = {<Admin/>}></Route>
         <Route path="/educator/dashboard" element = {<EducatorDashboard/>}></Route> 
         <Route path="/educator/live-quiz" element = {<LiveQuiz/>}></Route> 
-        <Route path="/generateQuiz" element = {<GeneratedQuizzes/>}></Route> 
+        <Route path="/generatedQuiz" element = {<GeneratedQuizzes/>}></Route> 
         <Route path="/educator/chat" element = {<Chat/>}></Route> 
         <Route path="/attend-quiz" element = {<AttendQuiz/>}></Route> 
         <Route path="/" element = {<LandingPage/>}></Route> 

@@ -19,7 +19,7 @@ function Chat() {
   });
   const [showAgenticModal, setShowAgenticModal] = useState(false);
   const [agenticUrl, setAgenticUrl] = useState('');
-  
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -30,8 +30,7 @@ function Chat() {
   const addAssistantMessage = (content) => {
     setMessages(prev => [...prev, {
       type: 'assistant',
-      content: content,
-      timestamp: new Date()
+      content: content
     }]);
   };
 
@@ -45,9 +44,16 @@ function Chat() {
     if (prompt.includes('help') || prompt.includes('how')) {
       return "I can help you generate quizzes from your documents! Here's how:\n1. Upload a PDF, DOCX, or TXT file\n2. Tell me how many questions you want (minimum 5)\n3. I'll generate a comprehensive quiz for you\n\nYou can also ask me to regenerate questions or modify the quiz.";
     }
- 
+
     if (!context.hasFile && prompt.match(/\d+\s*(questions?|quiz)/)) {
-      return "I'd love to generate questions for you, but I don't see any document uploaded yet. Please upload a PDF, DOCX, or TXT file first.";
+      const numberMatch = prompt.match(/(\d+)\s*(questions?|quiz)?/);
+      if (numberMatch) {
+        const num = parseInt(numberMatch[1]);
+        if (num < 5) {
+          return "I need to generate at least 5 questions. Please request 5 or more questions.";
+        }
+        return `generate_text:${num}`;  // New: for text-based generation
+      }
     }
 
     if (prompt.includes('regenerate') || prompt.includes('try again') || prompt.includes('redo')) {
@@ -77,9 +83,10 @@ function Chat() {
 
     if (context.hasFile) {
       return "I have your document ready. How many questions would you like me to generate? (Minimum 5 questions)";
-    } else {
-      return "Please upload a document first, then tell me how many questions you'd like to generate.";
     }
+
+    // FIX: Default return for text prompts without file
+    return `generate_text_prompt:${userPrompt}`;
   };
 
   const handleFileSelect = (e) => {
@@ -96,8 +103,7 @@ function Chat() {
         setConversationContext(prev => ({ ...prev, hasFile: true }));
         setMessages(prev => [...prev, {
           type: 'user',
-          content: `📎 Uploaded: ${selectedFile.name}`,
-          timestamp: new Date()
+          content: `Uploaded: ${selectedFile.name}`
         }]);
 
         setTimeout(() => {
@@ -107,19 +113,64 @@ function Chat() {
         setMessages(prev => [...prev, {
           type: 'error',
           content: 'Please upload a PDF, DOCX, or TXT file.',
-          timestamp: new Date()
         }]);
       }
     }
   };
 
-  const generateQuiz = async (numQuestions) => {
-    if (!file) {
-      addAssistantMessage("Oops! It seems the file is missing. Please upload a document again.");
+  const generateQuiz = async (numQuestions, isTextPrompt = false, textPrompt = '') => {
+    setIsLoading(true);
+
+    if (isTextPrompt) {
+      // Handle text-only prompts (Gemini API)
+      addAssistantMessage(`Generating ${numQuestions} questions from your prompt. This may take a moment...`);
+
+      try {
+        const formData = new FormData();
+        formData.append('text', textPrompt);
+        formData.append('numQuestions', numQuestions);
+
+        const response = await fetch("http://localhost:5000/generate-quiz", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+
+        setGeneratedQuiz(data);
+        setConversationContext(prev => ({
+          ...prev,
+          lastQuizParams: { numQuestions, isTextPrompt: true, textPrompt }
+        }));
+
+        setMessages(prev => [...prev, {
+          type: 'success',
+          content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
+          quizData: data
+        }]);
+      } catch (error) {
+        setMessages(prev => [...prev, {
+          type: 'error',
+          content: `Failed to generate quiz: ${error.message}`,
+        }]);
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
-    setIsLoading(true);
+    // Handle file-based generation
+    if (!file) {
+      addAssistantMessage("Oops! It seems the file is missing. Please upload a document again.");
+      setIsLoading(false);
+      return;
+    }
+
     addAssistantMessage(`Generating ${numQuestions} questions from your document. This may take a moment...`);
 
     try {
@@ -146,24 +197,24 @@ function Chat() {
           ...prev,
           lastQuizParams: { numQuestions, fileName: file.name }
         }));
-        
+
         setMessages(prev => [...prev, {
           type: 'success',
           content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
           timestamp: new Date(),
-          quizData: data  // Added this to display questions
+          quizData: data
         }]);
       }
     } catch (error) {
       setMessages(prev => [...prev, {
         type: 'error',
         content: `Failed to generate quiz: ${error.message}`,
-        timestamp: new Date()
       }]);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleSubmit = async () => {
     if (!input.trim()) return;
@@ -171,8 +222,7 @@ function Chat() {
     const userMessage = input.trim();
     setMessages(prev => [...prev, {
       type: 'user',
-      content: userMessage,
-      timestamp: new Date()
+      content: userMessage
     }]);
     setInput('');
     setIsLoading(true);
@@ -180,10 +230,28 @@ function Chat() {
     try {
       const llmResponse = await callLLM(userMessage, conversationContext);
 
+      // FIX: Check if llmResponse exists before calling startsWith
+      if (!llmResponse) {
+        addAssistantMessage("I'm not sure how to help with that. Could you please rephrase?");
+        setIsLoading(false);
+        return;
+      }
+
       if (llmResponse.startsWith('generate:')) {
         const numQuestions = parseInt(llmResponse.split(':')[1]);
         setIsLoading(false);
-        await generateQuiz(numQuestions);
+        await generateQuiz(numQuestions, false);
+      } else if (llmResponse.startsWith('generate_text:')) {
+        const numQuestions = parseInt(llmResponse.split(':')[1]);
+        setIsLoading(false);
+        await generateQuiz(numQuestions, true, userMessage);
+      } else if (llmResponse.startsWith('generate_text_prompt:')) {
+        const textPrompt = llmResponse.split(':')[1];
+        setIsLoading(false);
+        // Extract number from prompt or default to 5
+        const numMatch = textPrompt.match(/(\d+)/);
+        const numQuestions = numMatch ? parseInt(numMatch[1]) : 5;
+        await generateQuiz(numQuestions, true, textPrompt);
       } else if (llmResponse.startsWith('regenerate:')) {
         const numQuestions = parseInt(llmResponse.split(':')[1]);
         setIsLoading(false);
@@ -200,6 +268,7 @@ function Chat() {
       setIsLoading(false);
     }
   };
+
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -221,15 +290,56 @@ function Chat() {
   const handleAgenticMode = () => {
     setShowAgenticModal(true);
   };
-  
 
-  const handleAgenticGenerate = () => {
-    // TODO: Implement agentic mode quiz generation from URL
-    console.log('Generating quiz from URL:', agenticUrl);
-    setShowAgenticModal(false);
+
+const handleAgenticGenerate = async () => {
+  if (!agenticUrl.trim()) return;
+  
+  setShowAgenticModal(false);
+  setIsLoading(true);
+  
+  addAssistantMessage(`Generating quiz from URL: ${agenticUrl}`);
+  
+  try {
+    const response = await fetch('http://localhost:5000/agentic-mode', {
+      method: "POST",
+      body: JSON.stringify({
+        url: agenticUrl,
+        numQuestions: 5
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    setGeneratedQuiz(data);
+    setConversationContext(prev => ({
+      ...prev,
+      lastQuizParams: { numQuestions: data.questions.length, source: agenticUrl }
+    }));
+    
+    setMessages(prev => [...prev, {
+      type: 'success',
+      content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions from URL!`,
+      quizData: data
+    }]);
+    
     setAgenticUrl('');
-    addAssistantMessage(`I'll generate a quiz from the URL: ${agenticUrl}`);
-  };
+    
+  } catch (error) {
+    setMessages(prev => [...prev, {
+      type: 'error',
+      content: `Failed to generate quiz from URL: ${error.message}`,
+    }]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
   const handleSaveQuiz = async (quizData) => {
     try {
@@ -241,7 +351,7 @@ function Chat() {
         },
         body: JSON.stringify(quizData)
       });
-      
+
       if (response.ok) {
         addAssistantMessage("✅ Quiz saved successfully! You can access it from your saved quizzes.");
       } else {
@@ -275,9 +385,6 @@ function Chat() {
               <div className=" text-black rounded-2xl px-4 py-3 shadow-md bg-white">
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
               </div>
-              <span className="text-xs text-gray-400 mt-1 block text-right">
-                {msg.timestamp.toLocaleTimeString()}
-              </span>
             </div>
           </div>
         );
@@ -289,9 +396,6 @@ function Chat() {
               <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl px-4 py-3 shadow-md">
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
               </div>
-              <span className="text-xs text-gray-400 mt-1 block">
-                {msg.timestamp.toLocaleTimeString()}
-              </span>
             </div>
           </div>
         );
@@ -314,7 +418,7 @@ function Chat() {
                       <h3 className="font-semibold text-gray-800 mb-3 text-base">
                         📋 {msg.quizData.quiz_name}
                       </h3>
-                      
+
                       {/* Questions List */}
                       <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                         {msg.quizData.questions.map((q, idx) => (
@@ -324,13 +428,12 @@ function Chat() {
                               <h4 className="font-semibold text-gray-900 text-sm">
                                 Question {idx + 1}
                               </h4>
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                q.difficulty === 'easy' 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : q.difficulty === 'medium' 
-                                  ? 'bg-yellow-100 text-yellow-700' 
-                                  : 'bg-red-100 text-red-700'
-                              }`}>
+                              <span className={`text-xs px-2 py-1 rounded-full ${q.difficulty === 'easy'
+                                  ? 'bg-green-100 text-green-700'
+                                  : q.difficulty === 'medium'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : 'bg-red-100 text-red-700'
+                                }`}>
                                 {q.difficulty}
                               </span>
                             </div>
@@ -345,13 +448,12 @@ function Chat() {
                               {q.options.map((option, optIdx) => {
                                 const isCorrect = option.startsWith(q.correct_option_letter);
                                 return (
-                                  <div 
-                                    key={optIdx} 
-                                    className={`text-xs px-3 py-2 rounded-md ${
-                                      isCorrect 
-                                        ? 'bg-green-50 border border-green-300 text-green-800 font-medium' 
+                                  <div
+                                    key={optIdx}
+                                    className={`text-xs px-3 py-2 rounded-md ${isCorrect
+                                        ? 'bg-green-50 border border-green-300 text-green-800 font-medium'
                                         : 'bg-gray-50 border border-gray-200 text-gray-700'
-                                    }`}
+                                      }`}
                                   >
                                     {option}
                                     {isCorrect && <span className="ml-2">✓</span>}
@@ -371,7 +473,7 @@ function Chat() {
                             {q.sub_topics && q.sub_topics.length > 0 && (
                               <div className="flex gap-1.5 mt-2 flex-wrap">
                                 {q.sub_topics.map((topic, topicIdx) => (
-                                  <span 
+                                  <span
                                     key={topicIdx}
                                     className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full"
                                   >
@@ -389,14 +491,14 @@ function Chat() {
                     <div className="border-t border-green-200 pt-4 flex gap-2">
                       <button
                         onClick={() => handleSaveQuiz(msg.quizData)}
-                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 bg-linear-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm flex items-center gap-2"
                       >
                         <Download className="w-4 h-4" />
                         Save Quiz
                       </button>
                       <button
                         onClick={downloadQuiz}
-                        className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 bg-linear-to-r from-gray-600 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all shadow-sm flex items-center gap-2"
                       >
                         <Download className="w-4 h-4" />
                         Download JSON
@@ -405,9 +507,6 @@ function Chat() {
                   </div>
                 )}
               </div>
-              <span className="text-xs text-gray-400 mt-1 block">
-                {msg.timestamp.toLocaleTimeString()}
-              </span>
             </div>
           </div>
         );
@@ -422,9 +521,6 @@ function Chat() {
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
-              <span className="text-xs text-gray-400 mt-1 block">
-                {msg.timestamp.toLocaleTimeString()}
-              </span>
             </div>
           </div>
         );
@@ -439,8 +535,8 @@ function Chat() {
       {/* Header */}
       <div className="bg-[#0c001e] px-6 py-4 ">
         <p className="text-sm text-white text-center ">
-          
-           <span className='font-black'>ℹ️ </span>Create custom quizzes from your documents or give a text prompt</p>
+
+          <span className='font-black'>ℹ️ </span>Create custom quizzes from your documents or give a text prompt</p>
       </div>
 
       {/* Messages Container */}
@@ -471,7 +567,7 @@ function Chat() {
                 <Upload className="w-4 h-4" />
                 Attach
               </button>
-              
+
               <button
                 onClick={handleRegenerate}
                 disabled={!conversationContext.lastQuizParams}
@@ -527,7 +623,7 @@ function Chat() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
+              <h2 className="text-xl font-bold bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-purple-600" />
                 Agentic Mode
               </h2>
@@ -538,7 +634,7 @@ function Chat() {
                 <X className="w-6 h-6 text-gray-500" />
               </button>
             </div>
-            
+
             <p className="text-sm text-gray-600 mb-4">
               Generate a quiz from a URL
             </p>
@@ -552,6 +648,7 @@ function Chat() {
                   type="url"
                   value={agenticUrl}
                   onChange={(e) => setAgenticUrl(e.target.value)}
+
                   placeholder="https://example.com/article"
                   className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
@@ -560,7 +657,7 @@ function Chat() {
               <button
                 onClick={handleAgenticGenerate}
                 disabled={!agenticUrl.trim()}
-                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Generate Quiz
               </button>
