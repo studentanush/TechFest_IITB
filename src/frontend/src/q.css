@@ -4498,5 +4498,54 @@ html {
     display: none !important;
     content: none !important;
 }
+/* ===== REMOVE SCROLLBARS ===== */
 
+/* Remove scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Remove scrollbar for Firefox */
+* {
+    scrollbar-width: none !important;
+}
+
+/* Remove scrollbar for IE/Edge */
+* {
+    -ms-overflow-style: none !important;
+}
+
+/* Hide scrollbar but allow scrolling */
+html, body {
+    overflow: -moz-scrollbars-none !important;
+    -ms-overflow-style: none !important;
+}
+
+/* Ensure content is still scrollable */
+body {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+}
+
+/* Remove scrollbar from all elements */
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+}
 
