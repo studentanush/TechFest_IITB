@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
@@ -54,7 +57,7 @@ const StudentDashboard = () => {
     { 
       id: 1, 
       title: 'Physics - Motion Quiz', 
-      teacher: 'Dr. Johnson', 
+      teacher: 'Dr. Sharma', 
       duration: '30 min', 
       questions: 15,
       status: 'live',
@@ -63,7 +66,7 @@ const StudentDashboard = () => {
     { 
       id: 2, 
       title: 'Math - Calculus Basics', 
-      teacher: 'Prof. Smith', 
+      teacher: 'Prof. Sen', 
       duration: '45 min', 
       questions: 20,
       status: 'upcoming',
@@ -72,7 +75,7 @@ const StudentDashboard = () => {
     { 
       id: 3, 
       title: 'History - World War II', 
-      teacher: 'Ms. Davis', 
+      teacher: 'Ms. Kulkarni', 
       duration: '60 min', 
       questions: 25,
       status: 'live',
@@ -84,7 +87,7 @@ const StudentDashboard = () => {
     { 
       id: 1, 
       title: 'Chemistry Basics', 
-      date: 'Dec 5, 2024', 
+      date: 'Dec 5, 2025', 
       score: 85, 
       total: 100,
       icon: '🧪'
@@ -92,7 +95,7 @@ const StudentDashboard = () => {
     { 
       id: 2, 
       title: 'Biology - Cells', 
-      date: 'Nov 28, 2024', 
+      date: 'Nov 28, 2025', 
       score: 92, 
       total: 100,
       icon: '🔬'
@@ -100,7 +103,7 @@ const StudentDashboard = () => {
     { 
       id: 3, 
       title: 'Physics - Energy', 
-      date: 'Nov 20, 2024', 
+      date: 'Nov 20, 2025', 
       score: 78, 
       total: 100,
       icon: '⚛️'
@@ -180,7 +183,7 @@ const StudentDashboard = () => {
           <div className="user-profile">
             <div className="user-avatar">S</div>
             <div className="user-info">
-              <h4>Alex Johnson</h4>
+              <h4>Amartya Sen</h4>
               <p>Physics 101 • Roll No: 25</p>
             </div>
           </div>
@@ -371,7 +374,7 @@ const StudentDashboard = () => {
 
         {/* Footer */}
         <footer className="dashboard-footer">
-          <p>© 2024 QUIZZCO.AI Student Portal • Learn, Practice, Excel!</p>
+          <p>© 2025 QUIZZCO.AI Student Portal • Learn, Practice, Excel!</p>
           <div className="footer-links">
             <button onClick={() => alert('Help Center coming soon!')}>
               <i className="fas fa-question-circle"></i> Help Center
