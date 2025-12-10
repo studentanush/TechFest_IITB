@@ -180,175 +180,92 @@ adminNamespace.on("connection", (socket) => {
 });
 
 app.post('/generate-quiz', async (req, res) => {
-  try {
-    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-    
-    const textPrompt = req.body.text;
-    const numQuestions = req.body.numQuestions || 5;
-    
-    const prompt = `
-      YOU ARE AN EXPERT QUIZ GENERATOR, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE USER NEED, YOU WILL RECEIVE THE PROMPT.
-      Create EXACTLY ${numQuestions} number of questions.
+const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
+  const prompt = `
+    YOU ARE AN EXPERT QUIZ GENERATOR, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE USER NEED, YOU WILL RECEIVE THE PROMPT.
+    Create EXACTLY {num_questions} number of questions.
+    where {num_questions} is number of questions for which quiz is requested for.
 
-      CRITICAL: Output STRICTLY VALID JSON WITHOUT ANY MARKDOWN CODE BLOCKS OR DECORATION. NO \`\`\`json or \`\`\` tags.
 
-      Structure:
-      {
-        "quiz_name": "Concise title of 2-3 words",
-        "questions": [
-          {
-            "question": "Question text",
-            "type": "scq",
-            "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
-            "correct_option_content": "Full text of correct answer",
-            "correct_option_letter": "A",
-            "context": "Brief source excerpt (under 100 chars)",
-            "explanation": "Detailed solution",
-            "difficulty": "easy",
-            "sub_topics": ["topic1", "topic2"],
-            "reframe": {
-              "reframe_qns": false,
-              "reformed_qns": "",
-              "reframe_options": false,
-              "reformed_options": ""
-            }
-          }
-        ]
-      }
+    CRITICAL: Output complete, RETURN A STRICTLY RETURN A VALID JSON WITHOUT ANY DECORATION OF FOLLOWING STRUCTURE;
 
-      USER PROMPT: ${textPrompt}
-    `;
-    
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt
-    });
-    
-    console.log("Full Response Object:", result);
-    console.log("Response Keys:", Object.keys(result || {}));
-    
-    // Try different ways to access the text based on your API version
-    let responseText;
-    
-    if (result.text) {
-      // Direct property
-      responseText = result.text;
-    } else if (result.response && result.response.text) {
-      // Nested property
-      responseText = result.response.text;
-    } else if (typeof result.text === 'function') {
-      // Method call
-      responseText = await result.text();
-    } else if (result.response && typeof result.response.text === 'function') {
-      // Nested method call
-      responseText = await result.response.text();
-    } else if (result.candidates && result.candidates[0]) {
-      // Candidates array structure
-      responseText = result.candidates[0].content.parts[0].text;
-    } else {
-      throw new Error("Unable to extract text from response. Check console logs for structure.");
-    }
-    
-    console.log("Extracted Text:", responseText);
-    
-    // Clean and parse the response
-    let cleanedText = responseText.replace(/``````\n?/g, '').trim();
-    const quizData = JSON.parse(cleanedText);
-    
-    // Send the JSON response
-    res.json(quizData);
-    
-  } catch (error) {
-    console.error("Error generating quiz:", error);
-    console.error("Error details:", error.stack);
-    res.status(500).json({ 
-      error: "Failed to generate quiz", 
-      message: error.message 
-    });
-  }
-});
+
+    Structure:
+    - quiz_name: Concise title of 2-3 words summarizing the context
+    - questions: Array with EXACTLY {num_questions} question objects
+
+
+    Each question object:
+    - question: Question text
+    - type: "scq" (single correct)
+    - options: Array ["A) option1", "B) option2", "C) option3", "D) option4"]
+    - correct_option_content: Full text of correct answer
+    - correct_option_letter: Letter only (A, B, C, or D)
+    - context: Brief source excerpt (under 100 chars)
+    - explanation: Detailed solution
+    - difficulty: -2.0 to 2.0 (decimals allowed: -1.5, 0, 0.5, 1.0, etc.)
+    - sub_topics: Array of 2-3 specific subtopics
+    - reframe: Default Object with default values set as {{
+        "reframe_qns": false,
+        "reformed_qns": "",
+        "reframe_options": false,
+        "reformed_options": ""
+    }}
+    `
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt+req.body.text
+  });
+  console.log(response.text);
+  return response.text
+})
+
 
 
 app.post('/agentic-mode', async (req, res) => {
-  try {
-    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-    
-    const url = req.body.url;
-    const numQuestions = req.body.numQuestions || 5;
-    
-    const prompt = `
-      YOU ARE AN EXPERT QUIZ GENERATOR FROM GIVEN URL. Generate a quiz based on the content from this URL: ${url}
-      Create EXACTLY ${numQuestions} number of questions.
+const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
+  const prompt = `
 
-      CRITICAL: Output STRICTLY VALID JSON WITHOUT ANY MARKDOWN CODE BLOCKS OR DECORATION. NO \`\`\`json or \`\`\` tags.
 
-      Structure:
-      {
-        "quiz_name": "Concise title of 2-3 words",
-        "questions": [
-          {
-            "question": "Question text",
-            "type": "scq",
-            "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
-            "correct_option_content": "Full text of correct answer",
-            "correct_option_letter": "A",
-            "context": "Brief source excerpt (under 100 chars)",
-            "explanation": "Detailed solution",
-            "difficulty": "easy",
-            "sub_topics": ["topic1", "topic2"],
-            "reframe": {
-              "reframe_qns": false,
-              "reformed_qns": "",
-              "reframe_options": false,
-              "reformed_options": ""
-            }
-          }
-        ]
-      }
-    `;
-    
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt
-    });
-    
-    console.log("Full Response Object:", result);
-    
-    // Try different ways to access the text
-    let responseText;
-    
-    if (result.text) {
-      responseText = result.text;
-    } else if (result.response && result.response.text) {
-      responseText = result.response.text;
-    } else if (typeof result.text === 'function') {
-      responseText = await result.text();
-    } else if (result.response && typeof result.response.text === 'function') {
-      responseText = await result.response.text();
-    } else if (result.candidates && result.candidates[0]) {
-      responseText = result.candidates[0].content.parts[0].text;
-    } else {
-      throw new Error("Unable to extract text from response");
-    }
-    
-    console.log("Extracted Text:", responseText);
-    
-    // Clean and parse the response
-    let cleanedText = responseText.replace(/``````\n?/g, '').trim();
-    const quizData = JSON.parse(cleanedText);
-    
-    // Send the JSON response
-    res.json(quizData);
-    
-  } catch (error) {
-    console.error("Error generating quiz from URL:", error);
-    console.error("Error details:", error.stack);
-    res.status(500).json({ 
-      error: "Failed to generate quiz from URL", 
-      message: error.message 
-    });
-  }
-});
+    YOU ARE AN EXPERT QUIZ GENERATOR FROM GIVEN URL, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE WEBSITE OF THE URL, WHICH YOU WILL RECEIVE AS A PROMPT.
+    Create EXACTLY {num_questions} number of questions.
+    where {num_questions} is number of questions for which quiz is requested for.
+
+
+    CRITICAL: Output complete, RETURN A STRICTLY RETURN A VALID JSON WITHOUT ANY DECORATION OF FOLLOWING STRUCTURE;
+
+
+    Structure:
+    - quiz_name: Concise title of 2-3 words summarizing the context
+    - questions: Array with EXACTLY {num_questions} question objects
+
+
+    Each question object:
+    - question: Question text
+    - type: "scq" (single correct)
+    - options: Array ["A) option1", "B) option2", "C) option3", "D) option4"]
+    - correct_option_content: Full text of correct answer
+    - correct_option_letter: Letter only (A, B, C, or D)
+    - context: Brief source excerpt (under 100 chars)
+    - explanation: Detailed solution
+    - difficulty: -2.0 to 2.0 (decimals allowed: -1.5, 0, 0.5, 1.0, etc.)
+    - sub_topics: Array of 2-3 specific subtopics
+    - reframe: Default Object with default values set as {{
+        "reframe_qns": false,
+        "reformed_qns": "",
+        "reframe_options": false,
+        "reformed_options": ""
+    }}
+    `
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt+req.body.url
+  });
+  console.log(response.text);
+  return response.text
+})
+
+
 
 
 // ---------------- START SERVER ----------------
