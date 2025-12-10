@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom'; // Add this import
+
+
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { ContextAPI } from '../../Context';
 
@@ -10,13 +13,12 @@ const StudentDashboard = () => {
   const [typingIndex, setTypingIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const navigate = useNavigate(); // Add this
-  const {studentData,logoutStudent} = useContext(ContextAPI);
+  const navigate = useNavigate();
+
   const typingMessages = [
     "Join Live Quiz Instantly ⚡",
     "Track Your Progress 📊",
     "Get AI-Powered Insights 🤖",
-    "Practice Anytime, Anywhere 📚",
     "Improve With Analytics 📈"
   ];
 
@@ -42,7 +44,7 @@ const StudentDashboard = () => {
     const typingSpeed = isDeleting ? 50 : 100;
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
-  }, [typingText, typingIndex, charIndex, isDeleting, typingMessages]);
+  }, [typingText, typingIndex, charIndex, isDeleting]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -55,7 +57,7 @@ const StudentDashboard = () => {
     { 
       id: 1, 
       title: 'Physics - Motion Quiz', 
-      teacher: 'Dr. Johnson', 
+      teacher: 'Dr. Sharma', 
       duration: '30 min', 
       questions: 15,
       status: 'live',
@@ -64,7 +66,7 @@ const StudentDashboard = () => {
     { 
       id: 2, 
       title: 'Math - Calculus Basics', 
-      teacher: 'Prof. Smith', 
+      teacher: 'Prof. Sen', 
       duration: '45 min', 
       questions: 20,
       status: 'upcoming',
@@ -73,7 +75,7 @@ const StudentDashboard = () => {
     { 
       id: 3, 
       title: 'History - World War II', 
-      teacher: 'Ms. Davis', 
+      teacher: 'Ms. Kulkarni', 
       duration: '60 min', 
       questions: 25,
       status: 'live',
@@ -85,60 +87,31 @@ const StudentDashboard = () => {
     { 
       id: 1, 
       title: 'Chemistry Basics', 
-      date: 'Dec 5, 2024', 
+      date: 'Dec 5, 2025', 
       score: 85, 
       total: 100,
-      status: 'completed',
-      icon: '🧪',
-      progress: 85,
-      scoreEmoji: '✅'
+      icon: '🧪'
     },
     { 
       id: 2, 
       title: 'Biology - Cells', 
-      date: 'Nov 28, 2024', 
+      date: 'Nov 28, 2025', 
       score: 92, 
       total: 100,
-      status: 'completed',
-      icon: '🔬',
-      progress: 92,
-      scoreEmoji: '🎯'
+      icon: '🔬'
     },
     { 
       id: 3, 
       title: 'Physics - Energy', 
-      date: 'Nov 20, 2024', 
+      date: 'Nov 20, 2025', 
       score: 78, 
       total: 100,
-      status: 'completed',
-      icon: '⚛️',
-      progress: 78,
-      scoreEmoji: '📈'
+      icon: '⚛️'
     },
-  ];
-
-  const quickActions = [
-    {
-      id: 1,
-      icon: '📊',
-      title: 'View Reports',
-      description: 'Check your performance analytics and insights',
-      bgColor: 'linear-gradient(135deg, #4cc9f0, #4361ee)',
-      onClick: () => navigate('/student-report/1') // Navigate to sample report
-    },
-    {
-      id: 2,
-      icon: '🎯',
-      title: 'Practice Mode',
-      description: 'Practice with AI-generated quizzes anytime',
-      bgColor: 'linear-gradient(135deg, #00b4d8, #00bbf9)',
-      onClick: () => alert('Practice mode coming soon!')
-    }
   ];
 
   const handleJoinQuiz = () => {
     if (roomCode.trim()) {
-      // Navigate to quiz with the entered code
       navigate(`/attend-quiz/${roomCode}`);
     } else {
       alert('Please enter a room code');
@@ -146,12 +119,10 @@ const StudentDashboard = () => {
   };
 
   const handleViewReport = (quizId) => {
-    // Navigate to the report page
     navigate(`/student-report/${quizId}`);
   };
 
   const handleJoinLiveQuiz = (quizId) => {
-    // Navigate to the attend quiz page
     navigate(`/attend-quiz/${quizId}`);
   };
 
@@ -212,8 +183,8 @@ const StudentDashboard = () => {
           <div className="user-profile">
             <div className="user-avatar">S</div>
             <div className="user-info">
-              <h4>{studentData.name}</h4>
-              {/* <p>Physics 101 • Roll No: 25</p> */}
+              <h4>Amartya Sen</h4>
+              <p>Physics 101 • Roll No: 25</p>
             </div>
           </div>
         </div>
@@ -226,7 +197,7 @@ const StudentDashboard = () => {
           <p>Join live quizzes, track your progress, and improve your learning with AI-powered insights</p>
         </section>
 
-        {/* Join Live Quiz Section (First) */}
+        {/* Join Live Quiz Section */}
         <section className="section-container join-section-first">
           <div className="join-card action-card">
             <div className="action-icon" style={{ background: 'linear-gradient(135deg, #f72585, #ff006e)' }}>
@@ -237,7 +208,6 @@ const StudentDashboard = () => {
             
             <div className="join-input-group">
               <input
-                id="joinInput"
                 type="text"
                 placeholder="Enter room code (e.g., QUIZ-8B2X)"
                 value={roomCode}
@@ -256,31 +226,18 @@ const StudentDashboard = () => {
           </div>
         </section>
 
-        {/* Quick Actions Section (Second) - Now 2 boxes only */}
-        <section className="section-container quick-actions-two">
-          <h2 className="section-title">Quick Actions</h2>
-          <div className="actions-grid two-columns">
-            {quickActions.map((action, index) => (
-              <div 
-                key={action.id} 
-                className="action-card"
-                onClick={action.onClick}
-                style={{ animationDelay: `${0.1 * index}s` }}
-              >
-                <div 
-                  className="action-icon" 
-                  style={{ background: action.bgColor }}
-                >
-                  {action.icon}
-                </div>
-                <h3>{action.title}</h3>
-                <p>{action.description}</p>
-                <button className="action-btn">
-                  <span>Explore</span>
-                  <i className="fas fa-arrow-right"></i>
-                </button>
-              </div>
-            ))}
+        {/* Quick Action - View Reports */}
+        <section className="section-container quick-actions-single">
+          <div className="action-card" onClick={() => navigate('/student-report/1')}>
+            <div className="action-icon" style={{ background: 'linear-gradient(135deg, #4cc9f0, #4361ee)' }}>
+              📊
+            </div>
+            <h3>View Reports</h3>
+            <p>Check your performance analytics and insights</p>
+            <button className="action-btn">
+              <span>Explore</span>
+              <i className="fas fa-arrow-right"></i>
+            </button>
           </div>
         </section>
 
@@ -331,7 +288,6 @@ const StudentDashboard = () => {
                         title="View Details"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Navigate to quiz details or show modal
                           navigate(`/attend/${quiz.id}`);
                         }}
                       >
@@ -402,7 +358,6 @@ const StudentDashboard = () => {
                           title="Download PDF"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // In real app, this would download PDF
                             navigate(`/student-report/${attempt.id}`);
                           }}
                         >
@@ -419,7 +374,7 @@ const StudentDashboard = () => {
 
         {/* Footer */}
         <footer className="dashboard-footer">
-          <p>© 2024 QUIZZCO.AI Student Portal • Learn, Practice, Excel!</p>
+          <p>© 2025 QUIZZCO.AI Student Portal • Learn, Practice, Excel!</p>
           <div className="footer-links">
             <button onClick={() => alert('Help Center coming soon!')}>
               <i className="fas fa-question-circle"></i> Help Center
@@ -428,7 +383,7 @@ const StudentDashboard = () => {
               <i className="fas fa-cog"></i> Settings
             </button>
             <button onClick={() => {
-              logoutStudent
+              alert('Logged out successfully!');
               navigate('/');
             }}>
               <i className="fas fa-sign-out-alt"></i> Logout
@@ -440,4 +395,4 @@ const StudentDashboard = () => {
   );
 };
 
-export default StudentDashboard;  
+export default StudentDashboard; 
