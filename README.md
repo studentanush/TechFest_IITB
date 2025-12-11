@@ -1,4 +1,4 @@
-# 🧠 AI Quiz Portal – MERN + AI (Prototype Build)
+# QUIZZCO - AI Quiz Portal – MERN + AI (Prototype Build)
 
 A smart AI-powered quiz generation and evaluation platform built for the **UpSkill India Challenge (HCL × GUVI)**.  
 Our goal is to create an interactive quiz portal that automatically generates questions using AI, evaluates responses, and supports multi-user quiz sessions similar to Kahoot.
@@ -36,7 +36,7 @@ This platform solves these gaps by:
 
 ---
 
-## ⭐ Key Features
+## Key Features
 ### Authentication
 - Secure JWT-based user authentication.
 - Password encryption via bcrypt.
@@ -50,8 +50,8 @@ This platform solves these gaps by:
 
 ### Real-Time Multiplayer System
 - Two dedicated namespaces:
-- `/admin` – for quiz creation, broadcasting, flow control.
-- `/player` – for joining rooms, receiving questions, and submitting answers.
+- `admin` – for quiz creation, broadcasting, flow control.
+- `player` – for joining rooms, receiving questions, and submitting answers.
 - Instant scoring and leaderboard updates.
 - Event-driven architecture with Socket.IO.
 
@@ -147,7 +147,7 @@ models/
 
 ---
 
-## Important workflows
+## User workflows
 
 Login / Signup
 - Frontend POST -> /api/auth (server-side uses bcryptjs/jsonwebtoken).
@@ -167,9 +167,7 @@ Question broadcast & play flow
 
 Answer submission & scoring
 - Player emits `submitAnswer` with { roomCode, answer, correctAnswer, timeTaken, totalTime }.
-- Server computes:
-  - isCorrect = answer === correctAnswer
-  - points = 10 + (totalTime - timeTaken) * 5 (clamped to 0)
+- Server computes
 - Server updates room.scores and broadcasts `leaderboardUpdate`.
 
 AI generation
@@ -212,45 +210,6 @@ AI generation
 - Harden security: validate socket events, apply strict auth/authorization for admin actions, hide/secure secrets.
 - Provide model download scripts or hosted RAG worker for reproducible AI flows.
 - Add production-ready deployment docs (Docker images, Kubernetes, PM2) and monitoring/analytics.
-
----
-
-## One-command local startup guide
-
-Option A — Docker Compose (recommended)
-1. Create a `.env` based on `.env.example` (see below).
-2. Build and run everything:
-```bash
-docker compose up --build
-```
-- Backend exposed at: http://localhost:5000
-- Frontend exposed at: http://localhost:5173
-- MongoDB exposed at: mongodb://localhost:27017
-
-Option B — Local (no Docker) — single command script
-1. Make sure Node.js and npm are installed.
-2. From repo root, run:
-```bash
-# one-command to start frontend and backend concurrently (POSIX shell)
-./scripts/start-local.sh
-```
-The script will install dependencies (if needed) and run:
-- Backend: cd src/backend && npm install && npm run dev (nodemon server.js)
-- Frontend: cd src/frontend && npm install && npm run dev (vite)
-
-(See `scripts/start-local.sh` below.)
-
----
-
-## Important environment variables
-Based on code (src/backend/server.js & src/backend/config/db.js) and typical usage:
-
-- API_KEY=your_google_genai_api_key_here   # required by /generate-quiz and /agentic-mode
-- PORT=5000                               # optional (backend port); server.js defaults to 5000
-- MONGO_URL=mongodb://localhost:27017/techfest
-- JWT_SECRET=replace_with_jwt_secret
-- VITE_BACKEND_URL=http://localhost:5000  # (frontend dev usage)
-
 ---
 
 ## Contact & contributors
