@@ -12,7 +12,7 @@ import AttendQuiz from './pages/Student/AttendQuiz'
 import LandingPage from './pages/Landing/LandingPage'
 import Login from './pages/Auth/login'
 import Register from './pages/Auth/Register'
-import StudentDashboard from './pages/Student/Dashboard'
+import StudentDashboard from './pages/Student/StudentDashboard'
 import Reports from './pages/Educator/Reports'
 import { ToastContainer } from 'react-toastify'
 
