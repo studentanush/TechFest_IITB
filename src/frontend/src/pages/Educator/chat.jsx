@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import Aurora from '../../../background/Aurora';
 
 function Chat() {
   const [messages, setMessages] = useState([
@@ -64,9 +65,6 @@ function Chat() {
       return "I can help you generate quizzes from your documents! Here's how:\n1. Upload a PDF, DOCX, or TXT file\n2. Tell me how many questions you want (minimum 5)\n3. I'll generate a comprehensive quiz for you\n\nYou can also ask me to regenerate questions or modify the quiz.";
     }
 
-    if (context.hasFile && !prompt.match(/\d+\s*(questions?|quiz)/)) {
-      return "Please stay contextual to the uploaded document. Text prompts are disabled while a document is attached.";
-    }
 
     if (!context.hasFile && prompt.match(/\d+\s*(questions?|quiz)/)) {
       // FIX: Instead of saying "upload document", handle text prompts
@@ -407,13 +405,13 @@ function Chat() {
       });
 
       if (response.ok) {
-        addAssistantMessage("âœ… Quiz saved successfully! You can access it from your saved quizzes.");
+        addAssistantMessage("Quiz saved successfully! You can access it from your saved quizzes.");
       } else {
-        addAssistantMessage("âŒ Failed to save quiz. Please try again.");
+        addAssistantMessage("Failed to save quiz. Please try again.");
       }
     } catch (error) {
       console.error('Error saving quiz:', error);
-      addAssistantMessage("âŒ Error saving quiz. Please try again.");
+      addAssistantMessage("Error saving quiz. Please try again.");
     }
   };
 
@@ -474,7 +472,7 @@ function Chat() {
                       </h3>
 
                       {/* Questions List */}
-                      <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                      <div className="space-y-4 max-h-96 overflow-y-auto  pr-2">
                         {msg.quizData.questions.map((q, idx) => (
                           <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
                             {/* Question Header */}
@@ -585,14 +583,14 @@ function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen ">
+    <div className="flex flex-col min-h-screen relative">
       {/* Header */}
 
       <p className="text-sm text-white text-center relative bottom-10 ">Create custom quizzes from your documents or give a text prompt</p>
 
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 bg-[#0c001e]">
+      <div className="flex-1 overflow-y-auto px-6 py-4 bg-[#0c001e] scrollbar-visible">
         <div className="max-w-5xl mx-auto">
           {messages.map((msg, index) => renderMessage(msg, index))}
           {isLoading && (
@@ -607,14 +605,26 @@ function Chat() {
       </div>
 
       {/* Input Container - Purple/Lavender theme matching image */}
-      <div className="bg-[#0c001e] backdrop-blur-sm px-6 py-4">
-        <div className="max-w-5xl mx-auto">
-          <div className=" bg-[#100027] border-2 border-white rounded-3xl p-4 shadow-lg ">
+      <div className=" sticky bottom-0 z-50 bg-[#0c001e] backdrop-blur-sm px-3 py-20">
+
+        <div className="absolute bottom-0 left-0 w-full h-[160px] overflow-hidden pointer-events-none">
+          <div className="rotate-180 opacity-50 relative top-4 ">
+            <Aurora
+            className="z-0"
+              colorStops={["#8F00FF", "#C000FF", "#FF48C4"]}
+              blend={0.5}
+              amplitude={1.0}
+              speed={0.5}
+            />
+          </div>
+        </div>
+        <div className="max-w-3xl mx-auto">
+          <div className=" bg-none backdrop-blur-xl  border-[#A855F7]/20 border border-white/10 rounded-3xl p-4 shadow-lg ">
             {/* Action Buttons Row */}
             <div className="flex items-center gap-3 mb-3">
               <button
                 onClick={handleAttach}
-                className="px-4 py-2 bg-white/90 text-gray-700 text-sm font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200"
+                className="px-3 py-1  text-white-700 text-xs font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200"
               >
                 <Upload className="w-4 h-4" />
                 Attach
@@ -623,7 +633,7 @@ function Chat() {
               <button
                 onClick={handleRegenerate}
                 disabled={isLoading}
-                className="px-4 py-2 bg-white/90 text-gray-700 text-sm font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1  text-white-700 text-xs font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className="w-4 h-4" />
                 Regenerate
@@ -632,22 +642,26 @@ function Chat() {
               <button
                 onClick={handleAgenticMode}
                 disabled={isLoading}
-                className="px-4 py-2 bg-white/90 text-gray-700 text-sm font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200"
+                className="px-3 py-1 text-white-700 text-xs font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200"
               >
                 <Sparkles className="w-4 h-4" />
-                Agentic Mode
+                ENTER URL
               </button>
+
+
+
             </div>
 
+
             {/* Input Area */}
-            <div className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm focus-within:ring-0 focus-within:outline-none">
+            <div className="flex items-center gap-2 rounded-2xl px-3 py-1.5 shadow-sm focus-within:ring-0 focus-within:outline-none">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Upload a doc or a text prompt"
-                className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-sm bg-transparent focus:outline-none focus:ring-0 focus:border-none"
+                className="flex-1 outline-none text-white-800 placeholder-gray-400 text-sm bg-transparent focus:outline-none focus:ring-0 focus:border-none"
                 disabled={isLoading}
               />
               <button
@@ -655,7 +669,7 @@ function Chat() {
                 disabled={isLoading || !input.trim()}
                 className="p-2.5 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-full hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-0"
               >
-                <Send color='black' className="w-4 h-4 text-center" />
+                <Send color='white' className="w-5 h-5 text-center" />
               </button>
             </div>
           </div>
@@ -715,8 +729,11 @@ function Chat() {
                 Generate Quiz
               </button>
             </div>
+
           </div>
+
         </div>
+
       )}
     </div>
   );
