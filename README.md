@@ -97,7 +97,7 @@ This platform solves these gaps by:
 ---
 
 
-## 📁 Project Structure (Backend)
+## 📁 Project Backend Structure
 ```
 backend/
 ├── controllers/
@@ -112,7 +112,7 @@ backend/
 ```
 
 
-## 📁 Project Structure (Frontend)
+## 📁 Project Frontend Structure 
 ```
 frontend/
 ├── src/
@@ -123,7 +123,7 @@ frontend/
 │ └── App.jsx
 └── index.html
 ```
-
+## 📁 Project Models Structure
 ```
 models/
 ├── chroma_db/            # Local Chroma vector database files
@@ -139,7 +139,7 @@ models/
 ### Data Flow
 1. **Admin** creates quiz → stored in backend.
 2. Admin opens a room via Socket.IO → room broadcast starts.
-3. **Players** join the room via `/player` namespace.
+3. **Players** join the room.
 4. Admin broadcasts a question → all players receive it in real time.
 5. Players submit answers → server evaluates.
 6. Leaderboard updates → real-time broadcast to all.
@@ -154,6 +154,7 @@ Login / Signup
 - Frontend stores session as sessionStorage during development (commits reference this).
 
 Quiz creation (educator/admin)
+- Educator creates quiz and saves.
 - Educator emits `createRoom` to the `/admin` Socket.IO namespace with { hostName, quizD }.
 - Server generates a roomCode (nanoid(6)) and stores room metadata in memory (rooms Map).
 
