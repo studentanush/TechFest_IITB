@@ -31,6 +31,7 @@ const GeneratedQuizzes = () => {
         headers: { Authorization: token },
       });
       setQuizes(response.data);
+      console.log(token)
     } catch (error) {
       console.error("Error fetching quizzes:", error);
     } finally {

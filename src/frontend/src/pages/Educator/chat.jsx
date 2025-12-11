@@ -5,11 +5,14 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
  import Aurora from '../../../background/Aurora';
+ import axios from 'axios';
 function Chat() {
   const [messages, setMessages] = useState([
     {
       type: 'assistant',
-      content: 'Hello! I\'m your Quiz Generator Assistant. Upload a document (PDF, DOCX, or TXT) and I\'ll help you create custom quizzes. Just tell me what you need!',
+      content: `Hello! I\'m your Quiz Generator Assistant. Upload a document (PDF, DOCX, or TXT) and I\'ll help you create custom quizzes. Just tell me what you need!
+      \n Sample Commands include: Uploading a document and later on commanding for number of questions required.\n\nCurrently Im under development, so I can handle only one pdf and only quiz context at a time. \nDo not upload multiple documents together or mix contexts
+      `,
       timestamp: new Date()
     }
   ]);
@@ -396,14 +399,20 @@ function Chat() {
     try {
       // TODO: Replace with actual endpoint
       const educatorDetails = JSON.parse(sessionStorage.getItem('edu_info'));
+      console.log(quizData)
+      const response = await axios.post(
+  "http://localhost:5000/api/quizzes/create",
+  {
+    title: quizData.title,
+    questions: quizData.questions,
+  },
+  {
+    headers: {
+      Authorization: educatorDetails.token
+    }
+  }
+);
 
-      const response = await axios.post("http://localhost:5000/api/quizzes/create",{
-        quizData
-      },{
-        headers:{
-          Authorization:educatorDetails.token,
-        }
-      })
       // const response = await fetch('/api/quiz/save', {
       //   method: 'POST',
       //   headers: {
@@ -411,9 +420,10 @@ function Chat() {
       //   },
       //   body: JSON.stringify(quizData)
       // });
-
-      if (response.ok) {
+      console.log(response.data.quiz)
+      if (response.data.success) {
         addAssistantMessage("âœ… Quiz saved successfully! You can access it from your saved quizzes.");
+
       } else {
         addAssistantMessage("Failed to save quiz. Please try again.");
       }

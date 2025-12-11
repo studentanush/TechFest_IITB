@@ -9,9 +9,11 @@ export const createQuiz = async (req, res) => {
       ...req.body,
       createdBy: req.userId,
     });
+    console.log("Quiz created:", quiz);
 
     res.status(201).json({ success: true, quiz });
   } catch (err) {
+    console.error("Error creating quiz:", err);
     res.status(500).json({ message: "Error creating quiz" });
   }
 };

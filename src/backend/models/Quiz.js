@@ -11,13 +11,13 @@ const questionSchema = new mongoose.Schema({
   type:String, // mcq
   difficulty:String,
   context:String,
-  sub_topics:String
+  sub_topics:Array
 });
 
 const quizSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    time:{type:String ,required:true},
+    title: { type: String, required: false },
+    time:{type:String ,required:false},
     date : {type :Date},
     status:{type:String},
     questions: [questionSchema],
