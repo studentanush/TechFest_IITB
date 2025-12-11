@@ -1,7 +1,59 @@
-# This project uses Node.js (MERN stack)
-# requirements.txt included as per submission guidelines
-# Python is not used, so this file is intentionally empty.
+--- QUIZZCO.AI - AI-POWERED QUIZ GENERATOR ---
+##FILE MADE FOR INSTALLING AND UPDATING DEPENDENCIES
+##TO RUN THE SERVER(FRONTEND,BACKEND,MODELS) SEE FOR README FILES IN EACH RESPECTIVE DIRECTORY
 
-# Dependencies are listed in:
-#   /src/backend/package.json
-#   /src/frontend/package.json
+Frontend - /src/frontend
+Backend - /src/backend
+AI model - /src/models
+
+Python Setup (models/)
+
+Python Version
+Python 3.10.0
+
+Navigate to the models folder
+
+cd models
+pip install -r dependencies.txt
+
+
+Node Version
+Latest Node.js LTS (20+ recommended)
+
+1. Navigate to frontend
+cd src/frontend
+
+2. Install dependencies
+npm install
+
+If the above fails (fallback):
+npm install @tailwindcss/vite axios katex lucide-react react react-dom react-icons react-markdown react-router-dom react-toastify rehype-katex remark-math socket.io-client tailwindcss toastify ogl
+npm install
+
+
+3. Navigate to backend
+cd src/backend
+
+4. Install dependencies
+npm install
+
+If the above fails (fallback):
+npm install @google/genai @google/generative-ai bcryptjs cors dotenv express express-rate-limit jsonwebtoken mongoose multer nanoid socket.io 
+npm install
+
+
+------------SUMMARY-----------------
+Models
+cd models
+pip install -r requirements.txt
+
+Frontend
+cd src/frontend
+npm install
+
+Backend
+cd src/backend
+npm install
+
+
+--FOR RUNNING EACH SERVER AND IMPLEMENTATION REFER 
