@@ -124,7 +124,15 @@ frontend/
 └── index.html
 ```
 
-
+```
+models/
+├── chroma_db/            # Local Chroma vector database files
+├── uploads/              # Uploaded PDF/text/docx files for processing
+├── dependencies.txt      # Python dependencies (like requirements.txt)
+├── server.py             # FastAPI / backend server for model operations
+├── speakerLLM.py         # LLM-driven speaker/extraction/embedding logic
+└── README.md             # Setup instructions for the models module
+```
 ---
 
 ## 🔄 System Architecture
