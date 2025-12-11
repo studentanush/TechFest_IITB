@@ -179,7 +179,7 @@ const StudentDashboard = () => {
                 type="text"
                 placeholder="Enter room code (e.g., QUIZ-8B2X)"
                 value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                onChange={(e) => setRoomCode(e.target.value)}
                 maxLength="10"
                 onKeyPress={(e) => e.key === 'Enter' && handleJoinQuiz()}
               />
