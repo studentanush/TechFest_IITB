@@ -1,4 +1,10 @@
 --- QUIZZCO.AI - AI-POWERED QUIZ GENERATOR ---
+##FILE MADE FOR INSTALLING AND UPDATING DEPENDENCIES
+##TO RUN THE SERVER(FRONTEND,BACKEND,MODELS) SEE FOR README FILES IN EACH RESPECTIVE DIRECTORY
+
+Frontend - /src/frontend
+Backend - /src/backend
+AI model - /src/models
 
 Python Setup (models/)
 
@@ -48,3 +54,6 @@ npm install
 Backend
 cd src/backend
 npm install
+
+
+--FOR RUNNING EACH SERVER AND IMPLEMENTATION REFER 
