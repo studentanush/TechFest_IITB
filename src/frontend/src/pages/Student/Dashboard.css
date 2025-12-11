@@ -16,7 +16,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 40px;
-  background: rgba(10, 0, 26, 0.7);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -41,7 +40,7 @@
   background: rgba(138, 43, 226, 0.1);
   border-radius: 16px;
   border: 1px solid rgba(138, 43, 226, 0.3);
-  transition: all 0.3s ease;
+  /* transition: all 0.3s ease; */
 }
 
 .logo-container:hover {
@@ -53,7 +52,6 @@
 .logo-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #8a2be2, #f72585);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -271,31 +269,31 @@
   max-width: 700px;
   margin: 0 auto;
   position: relative;
-  overflow: hidden; /* Changed from 'visible' */
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border instead of white */
+  border: 1px solid rgba(138, 43, 226, 0.3);
   border-radius: 20px;
   padding: 40px;
   box-shadow: 
-    0 8px 32px rgba(138, 43, 226, 0.2), /* Purple shadow instead of black */
-    inset 0 1px 0 rgba(138, 43, 226, 0.1); /* Purple inset instead of white */
-  animation: fade-in-up 0.6s ease-out 0.1s both;
-  transition: all 0.3s ease;
+    0 8px 32px rgba(138, 43, 226, 0.2),
+    inset 0 1px 0 rgba(138, 43, 226, 0.1);
+  /* animation: fade-in-up 0.6s ease-out 0.1s both; */
+  /* transition: all 0.3s ease; */
   z-index: 2;
 }
 
 .join-card.action-card:hover {
   transform: translateY(-5px);
   box-shadow: 
-    0 15px 40px rgba(138, 43, 226, 0.3), /* Purple shadow */
-    inset 0 1px 0 rgba(138, 43, 226, 0.15); /* Purple inset */
+    0 15px 40px rgba(138, 43, 226, 0.3),
+    inset 0 1px 0 rgba(138, 43, 226, 0.15);
   border-color: rgba(138, 43, 226, 0.4);
 }
 
 /* REMOVED THE "🔥 MOST USED" TAG */
 .join-card.action-card::before {
-  display: none; /* This removes the tag completely */
+  display: none;
 }
 
 .join-card .action-icon {
@@ -326,8 +324,10 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+/* UPDATED: Join Input Group - Button below input */
 .join-input-group {
   display: flex;
+  flex-direction: column;
   gap: 15px;
   margin-top: 25px;
   max-width: 500px;
@@ -336,24 +336,25 @@
 }
 
 .join-input-group input {
-  flex: 1;
-  padding: 18px 25px;
+  width: 100%;
+  padding: 16px 25px;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
-  border-radius: 15px;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 12px;
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 500;
   text-align: center;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   outline: none;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .join-input-group input:focus {
-  border-color: #8a2be2; /* Purple instead of blue */
-  background: rgba(138, 43, 226, 0.15); /* Purple tint */
-  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3); /* Purple glow */
+  border-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.15);
+  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3);
   transform: none;
 }
 
@@ -362,44 +363,47 @@
   letter-spacing: normal;
 }
 
-/* Join Button */
+/* UPDATED: Join Button - Smaller size */
 .join-btn.action-btn {
+  width: 100%;
   background: linear-gradient(135deg, #f72585, #ff006e);
-  padding: 18px 35px;
+  padding: 14px 25px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 1.1rem;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 15px;
+  border-radius: 12px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3);
+  box-shadow: 0 4px 12px rgba(247, 37, 133, 0.3);
+  box-sizing: border-box;
 }
 
 .join-btn.action-btn:hover {
   transform: translateY(-3px);
   box-shadow: 
-    0 8px 25px rgba(247, 37, 133, 0.5),
-    0 4px 12px rgba(247, 37, 133, 0.3);
+    0 8px 20px rgba(247, 37, 133, 0.5),
+    0 4px 10px rgba(247, 37, 133, 0.3);
   background: linear-gradient(135deg, #ff006e, #f72585);
 }
 
 .join-btn.action-btn:active {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+  box-shadow: 0 4px 12px rgba(247, 37, 133, 0.4);
 }
 
 .quick-join-hint {
-  margin-top: 25px;
-  padding: 12px 20px;
+  margin-top: 20px;
+  padding: 10px 20px;
   background: rgba(76, 201, 240, 0.1);
   border: 1px solid rgba(76, 201, 240, 0.2);
-  border-radius: 12px;
+  border-radius: 10px;
   color: #4cc9f0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -418,12 +422,12 @@
 .quick-actions-single .action-card {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
+  border: 1px solid rgba(138, 43, 226, 0.3);
   border-radius: 20px;
   padding: 35px;
   box-shadow: 
-    0 8px 32px rgba(138, 43, 226, 0.15), /* Purple shadow */
-    inset 0 1px 0 rgba(138, 43, 226, 0.1); /* Purple inset */
+    0 8px 32px rgba(138, 43, 226, 0.15),
+    inset 0 1px 0 rgba(138, 43, 226, 0.1);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   text-align: center;
@@ -480,25 +484,25 @@
 
 .quick-actions-single .action-btn {
   background: linear-gradient(135deg, #4cc9f0, #4361ee);
-  padding: 14px 30px;
-  font-size: 1rem;
+  padding: 12px 25px;
+  font-size: 0.95rem;
   font-weight: 600;
   border: none;
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
-  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(76, 201, 240, 0.3);
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%; /* FULL WIDTH */
+  width: 100%;
   justify-content: center;
 }
 
 .quick-actions-single .action-btn:hover {
   background: linear-gradient(135deg, #4361ee, #4cc9f0);
-  box-shadow: 0 6px 20px rgba(76, 201, 240, 0.5);
+  box-shadow: 0 6px 18px rgba(76, 201, 240, 0.5);
   transform: translateY(-2px);
 }
 
@@ -532,11 +536,11 @@
 .quiz-table {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
+  border: 1px solid rgba(138, 43, 226, 0.3);
   border-radius: 20px;
   box-shadow: 
-    0 8px 32px rgba(138, 43, 226, 0.15), /* Purple shadow */
-    inset 0 1px 0 rgba(138, 43, 226, 0.1); /* Purple inset */
+    0 8px 32px rgba(138, 43, 226, 0.15),
+    inset 0 1px 0 rgba(138, 43, 226, 0.1);
   overflow: hidden;
   animation: fade-in-up 0.6s ease-out 0.4s both;
 }
@@ -546,7 +550,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 25px 30px;
-  border-bottom: 1px solid rgba(138, 43, 226, 0.2); /* Purple border */
+  border-bottom: 1px solid rgba(138, 43, 226, 0.2);
 }
 
 .quiz-table-header h3 {
@@ -727,7 +731,7 @@
   width: 44px;
   height: 44px;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
+  border: 1px solid rgba(138, 43, 226, 0.3);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -750,7 +754,7 @@
   text-align: center;
   padding: 40px 0;
   margin-top: 60px;
-  border-top: 1px solid rgba(138, 43, 226, 0.2); /* Purple border */
+  border-top: 1px solid rgba(138, 43, 226, 0.2);
   color: rgba(255, 255, 255, 0.6);
   animation: fade-in 1s ease-out 0.6s both;
 }
@@ -769,7 +773,7 @@
 
 .footer-links button {
   background: transparent;
-  border: 1px solid rgba(138, 43, 226, 0.3); /* Purple border */
+  border: 1px solid rgba(138, 43, 226, 0.3);
   color: rgba(255, 255, 255, 0.8);
   padding: 8px 16px;
   border-radius: 8px;
@@ -909,7 +913,7 @@
   
   /* Responsive for full-width button */
   .quick-actions-single .action-btn {
-    padding: 12px 20px;
+    padding: 15px 20px;
     font-size: 0.95rem;
   }
 }
@@ -945,12 +949,13 @@
   }
   
   .join-input-group input {
-    padding: 15px 20px;
-    font-size: 1.1rem;
+    padding: 14px 20px;
+    font-size: 1rem;
   }
   
   .join-btn.action-btn {
-    padding: 15px 25px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
   }
   
   .footer-links {
@@ -1011,4 +1016,62 @@ i.fas, i.fab {
 
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Flex utility classes */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.join-btn.action-btn {
+  width: auto;
+  min-width: 150px;
+  max-width: 300px;
+  background: linear-gradient(135deg, #f72585, #ff006e);
+  padding: 12px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(247, 37, 133, 0.3);
+  box-sizing: border-box;
+  margin: 0 auto; /* Center the button */
+}
+
+
+.join-input-group input {
+  width: 100%;
+  max-width: 400px;
+  padding: 16px 25px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 2px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  margin: 0 auto; /* Center the input */
 }

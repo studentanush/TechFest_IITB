@@ -4,19 +4,17 @@ const Customize = () => {
   return (
     <section className="section section-3" id="section3">
       <div className="container">
-        <div className="section-header center">
-          <div className="section-badge">
-            <i className="fas fa-cogs"></i>
-            <span>Customized Experience</span>
-          </div>
-          <h2 className="section-title">
+        <div className="section-header">
+          <h2 className="section-title custom-heading-size">
             <span className="text-highlight">Customized</span> Questions
           </h2>
-          <p className="section-description">
+         {/* <p className="section-description custom-text-width">
             Tailor quizzes to your exact requirements. Choose question formats, 
             difficulty levels, and customize every aspect of your assessment.
-          </p>
+          </p>*/}
         </div>
+        
+        {/* Rest of your boxes remain exactly the same */}
         <div className="customization-grid">
           <div className="customization-card scale-in" data-delay="100">
             <div className="card-icon-large">
@@ -35,6 +33,7 @@ const Customize = () => {
               </div>
             </div>
           </div>
+          
           <div className="customization-card scale-in" data-delay="200">
             <div className="card-icon-large">
               <i className="fas fa-shapes"></i>
@@ -48,6 +47,7 @@ const Customize = () => {
               <span className="format-icon"><i className="fas fa-keyboard"></i> Text</span>
             </div>
           </div>
+          
           <div className="customization-card scale-in" data-delay="300">
             <div className="card-icon-large">
               <i className="fas fa-edit"></i>

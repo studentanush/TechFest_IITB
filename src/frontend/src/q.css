@@ -803,7 +803,7 @@ body {
     transition: all 0.3s ease;
 }
 
-.icon-glow {
+/*.icon-glow {
     position: absolute;
     top: 0;
     left: 0;
@@ -813,7 +813,7 @@ body {
     box-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
     animation: gentle-pulse 3s ease-in-out infinite;
     opacity: 0.5;
-}
+}*/
 
 .card-badge {
     padding: 10px 20px;
@@ -1221,7 +1221,7 @@ body {
     overflow: hidden;
 }
 
-.card-shimmer {
+/*.card-shimmer {
     position: absolute;
     top: 0;
     left: -100%;
@@ -1234,7 +1234,7 @@ body {
         transparent
     );
     animation: shine 4s ease-in-out infinite;
-}
+}*/
 
 .visual-icon {
     font-size: 4rem;
@@ -4233,3 +4233,319 @@ html {
         transform: translateY(0);
     }
 }
+/* ===== REMOVE SHIMMER/LIGHT EFFECTS ONLY FROM FLIP CARDS ===== */
+
+/* Remove card shine effect from flip cards */
+.flip-card .card-shine-effect,
+.flip-card .card-shimmer {
+    display: none !important;
+}
+
+/* Remove shine effects from flip card badges */
+.flip-card .badge-shine {
+    display: none !important;
+}
+
+/* Remove glow from flip card icons */
+.flip-card .icon-glow {
+    display: none !important;
+}
+
+/* Remove pulse animations from flip cards */
+.flip-card .card-icon {
+    animation: none !important;
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.3) !important;
+}
+
+/* Remove any shine/wave effects on flip card progress bars */
+.flip-card .slider-fill,
+.flip-card .progress-fill {
+    animation: none !important;
+    background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
+}
+
+/* Remove white shine lines from flip cards */
+.flip-card-front::before,
+.flip-card-back::before,
+.flip-card-front::after,
+.flip-card-back::after {
+    display: none !important;
+}
+
+/* Remove background shine gradients from flip cards */
+.flip-card .card-shine-effect {
+    background: none !important;
+}
+
+/* Remove any white/shine effects from flip card borders */
+.flip-card {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+.flip-card:hover:not(.flipped) {
+    box-shadow: 0 20px 50px rgba(138, 43, 226, 0.25) !important;
+}
+
+/* Remove shine from flip card icons */
+.flip-card .card-icon::before,
+.flip-card .card-icon::after {
+    display: none !important;
+}
+
+/* Ensure no white/shine effects on flip card hover */
+.flip-card:hover .card-icon {
+    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4) !important;
+}
+
+/* Remove any remaining shine effects specific to flip cards */
+.flip-card *[class*="shine"],
+.flip-card *[class*="shimmer"],
+.flip-card *[class*="glow"]:not(.icon-glow) {
+    display: none !important;
+}
+
+/* Keep the card icon visible but without glow */
+.flip-card .card-icon {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lighter);
+    font-size: 1.8rem;
+}
+
+/* Make flip cards solid without transparent shine effects */
+.flip-card-front,
+.flip-card-back {
+    background: linear-gradient(135deg, 
+        rgba(10, 0, 26, 0.9), 
+        rgba(16, 0, 43, 0.9)) !important;
+    border: 1px solid rgba(138, 43, 226, 0.3) !important;
+}
+
+/* Specifically for the front flip card */
+.flip-card-front {
+    background: rgba(10, 0, 26, 0.85) !important;
+    border: 1px solid rgba(138, 43, 226, 0.25) !important;
+}
+
+/* Specifically for the back flip card */
+.flip-card-back {
+    background: rgba(16, 0, 43, 0.9) !important;
+    border: 1px solid rgba(138, 43, 226, 0.3) !important;
+}
+
+/* Remove any text shine effects from flip cards */
+.flip-card .text-gradient {
+    text-shadow: none !important;
+}
+
+/* Remove button shine effects only from flip cards */
+.flip-card .btn-gradient:hover,
+.flip-card .btn-primary:hover,
+.flip-card .btn-front:hover {
+    box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3) !important;
+}
+
+/* Remove shine from flip card hover effect */
+.flip-card:hover .card-shine-effect {
+    display: none !important;
+}
+/* ===== COMPLETELY REMOVE ICON GLOW ELEMENT ===== */
+
+/* This is the nuclear option - completely removes the glow element */
+.icon-glow {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
+/* Also remove from all parent containers */
+.flip-card .icon-glow,
+.flip-card-front .icon-glow,
+.card-icon .icon-glow {
+    display: none !important;
+}
+
+/* Disable ALL animations that might be causing glow */
+.card-icon,
+.flip-card .card-icon,
+.flip-card:nth-child(1) .card-icon {
+    animation: none !important;
+}
+
+/* Remove any box-shadow glow */
+.card-icon {
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.3) !important;
+}
+/* ===== COMPLETELY DISABLE GENTLE-PULSE ANIMATION AND ICON GLOW ===== */
+
+/* Completely remove the icon-glow element and its animation */
+.icon-glow {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+/* Disable the gentle-pulse animation entirely */
+@keyframes gentle-pulse {
+    0%, 50%, 100% { 
+        transform: scale(1); 
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+}
+
+/* Make sure card icons have no animation */
+.card-icon {
+    animation: none !important;
+}
+
+/* Remove any residual glow from card icons */
+.flip-card .card-icon,
+.flip-card:nth-child(1) .card-icon,
+.flip-card:nth-child(2) .card-icon {
+    animation: none !important;
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.3) !important;
+}
+
+/* Remove any pseudo-elements that might have glow */
+.card-icon::before,
+.card-icon::after,
+.icon-glow::before,
+.icon-glow::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Nuclear option - disable ALL animations on flip cards */
+.flip-card,
+.flip-card * {
+    animation: none !important;
+}
+/* Custom styling for Customize section */
+.custom-heading-size {
+    font-size: 2.5rem !important; /* Larger heading */
+    margin-bottom: 25px !important;
+}
+
+.custom-text-width {
+    max-width: 600px !important; /* Limits text to about 3 lines */
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    line-height: 1.7 !important;
+    font-size: 1.2rem !important;
+}
+/* ===== REDUCE SPECIFIC NAVBAR BUTTONS ===== */
+
+/* Target only Login button (btn-text in navbar) */
+.navbar .btn-text {
+    padding: 10px 20px !important; /* Reduced from 14px 28px */
+    font-size: 0.9rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Target only Get Started button (btn-gradient in navbar) */
+.navbar .btn-gradient {
+    padding: 10px 22px !important; /* Reduced from 14px 28px */
+    font-size: 0.9rem !important;
+}
+
+/* Remove any underline from both */
+.navbar .btn-text:hover,
+.navbar .btn-gradient:hover {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+/* ===== REMOVE UNDERLINE FROM NAVBAR BUTTONS ===== */
+
+/* Remove underline from text button */
+.navbar .btn-text {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+/* Remove underline from gradient button */
+.navbar .btn-gradient {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+/* Remove underline on hover */
+.navbar .btn-text:hover,
+.navbar .btn-gradient:hover {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+/* Remove any pseudo-elements that might create underline */
+.navbar .btn-text::before,
+.navbar .btn-text::after,
+.navbar .btn-gradient::before,
+.navbar .btn-gradient::after {
+    display: none !important;
+    content: none !important;
+}
+/* ===== REMOVE SCROLLBARS ===== */
+
+/* Remove scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Remove scrollbar for Firefox */
+* {
+    scrollbar-width: none !important;
+}
+
+/* Remove scrollbar for IE/Edge */
+* {
+    -ms-overflow-style: none !important;
+}
+
+/* Hide scrollbar but allow scrolling */
+html, body {
+    overflow: -moz-scrollbars-none !important;
+    -ms-overflow-style: none !important;
+}
+
+/* Ensure content is still scrollable */
+body {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+}
+
+/* Remove scrollbar from all elements */
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+}
+

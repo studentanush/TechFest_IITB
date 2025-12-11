@@ -1,11 +1,10 @@
 
 
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { ContextAPI } from '../../Context';
-import { playerSocket } from '../../socket';
 
 const StudentDashboard = () => {
   const [roomCode, setRoomCode] = useState('');
@@ -15,7 +14,7 @@ const StudentDashboard = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
-  const {studentData} = useContext(ContextAPI);
+
   const typingMessages = [
     "Join Live Quiz Instantly ⚡",
     "Track Your Progress 📊",
@@ -111,9 +110,6 @@ const StudentDashboard = () => {
     },
   ];
 
-  
-
-
   const handleJoinQuiz = () => {
     if (roomCode.trim()) {
       navigate(`/attend-quiz/${roomCode}`);
@@ -161,44 +157,12 @@ const StudentDashboard = () => {
   return (
     <div className="educator-dashboard student-version">
       {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <div className="logo-container">
-            <div className="logo-icon">
-              <span style={{ fontSize: '1.5rem' }}>🎓</span>
-            </div>
-            <div className="logo-text">
-              <div className="primary">QUIZZCO.AI</div>
-              <div className="secondary">Student Portal</div>
-            </div>
-          </div>
-          <div className="typing-text-container">
-            <span className="typing-text">{typingText}</span>
-            <span className="typing-cursor">|</span>
-          </div>
-        </div>
-        
-        <div className="header-right">
-          <div className="notification-bell">
-            <i className="fas fa-bell"></i>
-            <div className="notification-badge">3</div>
-          </div>
-          
-          <div className="user-profile">
-            <div className="user-avatar">S</div>
-            <div className="user-info">
-              <h4>{studentData.name}</h4>
-              {/* <p>Physics 101 • Roll No: 25</p> */}
-            </div>
-          </div>
-        </div>
-      </header>
 
       <div className="dashboard-content">
         {/* Welcome Section */}
-        <section className="welcome-section">
-          <h1>Welcome to <span className="highlight">Student Portal</span>! 👋</h1>
-          <p>Join live quizzes, track your progress, and improve your learning with AI-powered insights</p>
+        <section className="welcome-section flex flex-col items-center">
+          <h1 className='text-center'>Welcome to <span className="highlight ">Student Portal</span></h1>
+         Join live quizzes, track your progress, and improve your learning with AI-powered insights
         </section>
 
         {/* Join Live Quiz Section */}
@@ -210,18 +174,16 @@ const StudentDashboard = () => {
             <h2>Join Live Quiz Now</h2>
             <p>Enter the room code provided by your teacher to join instantly</p>
             
-            <div className="join-input-group">
+            <div className="join-input-group flex flex-col items-center">
               <input
                 type="text"
                 placeholder="Enter room code (e.g., QUIZ-8B2X)"
                 value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                 maxLength="10"
                 onKeyPress={(e) => e.key === 'Enter' && handleJoinQuiz()}
               />
-              <button onClick={handleJoinQuiz} className="action-btn join-btn w-20">
-                <i className="fas fa-sign-in-alt"></i> Join Now
-              </button>
+              <button onClick={handleJoinQuiz} className="action-btn join-btn">Join Now</button>
             </div>
             
             <div className="quick-join-hint">
