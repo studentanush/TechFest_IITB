@@ -111,12 +111,6 @@ const StudentReport = () => {
     try {
       setLoading(true);
       
-      // REAL API CALL - UNCOMMENT WHEN READY:
-      // const response = await fetch(`/api/reports/${quizId}/student`);
-      // if (!response.ok) throw new Error('Failed to fetch report');
-      // const data = await response.json();
-      // return data;
-      
       // Mock delay to simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       return mockReportData;
@@ -599,10 +593,28 @@ const StudentReport = () => {
               </div>
             )}
 
-            {/* Question Analysis Tab */}
+            {/* Question Analysis Tab - UPDATED VERSION */}
             {activeTab === 'questions' && (
               <div className="questions-analysis">
                 <h3><i className="fas fa-list-ol"></i> Question-wise Analysis</h3>
+                
+                {/* Filter Bar */}
+                <div className="questions-filter-bar">
+                  <button className="filter-btn active">
+                    <i className="fas fa-layer-group"></i> All ({reportData.totalQuestions})
+                  </button>
+                  <button className="filter-btn correct">
+                    <i className="fas fa-check-circle"></i> Correct ({reportData.correctAnswers})
+                  </button>
+                  <button className="filter-btn wrong">
+                    <i className="fas fa-times-circle"></i> Wrong ({reportData.wrongAnswers})
+                  </button>
+                  <button className="filter-btn skipped">
+                    <i className="fas fa-forward"></i> Skipped ({reportData.skipped})
+                  </button>
+                </div>
+
+                {/* Questions Grid - UPDATED */}
                 <div className="questions-grid">
                   {reportData.questions.map((question, index) => (
                     <div 
@@ -613,8 +625,13 @@ const StudentReport = () => {
                         setActiveTab('solutions');
                       }}
                     >
-                      <div className="question-number">Q{question.id}</div>
-                      <div className="question-status">
+                      {/* Question Number Circle */}
+                      <div className="question-number-circle">
+                        Q{question.id}
+                      </div>
+                      
+                      {/* Status Badge */}
+                      <div className="question-status-badge">
                         <span className="status-icon">
                           {question.isCorrect ? '✓' : question.studentAnswer ? '✗' : '○'}
                         </span>
@@ -622,15 +639,50 @@ const StudentReport = () => {
                           {question.isCorrect ? 'Correct' : question.studentAnswer ? 'Wrong' : 'Skipped'}
                         </span>
                       </div>
-                      <div className="question-topic">
-                        <span className="topic-badge">{question.topic}</span>
-                        <span className="difficulty-badge">{question.difficulty}</span>
+                      
+                      {/* Topic & Difficulty Tags */}
+                      <div className="question-tags">
+                        <div className="tag-row">
+                          <span className="tag topic-tag">{question.topic}</span>
+                          <span className="tag difficulty-tag">{question.difficulty}</span>
+                        </div>
                       </div>
-                      <div className="question-marks">
-                        {question.awardedMarks}/{question.marks} marks
+                      
+                      {/* Marks Display */}
+                      <div className="question-marks-display">
+                        <span className="marks-awarded">{question.awardedMarks}</span>
+                        <span className="marks-total">/{question.marks} pts</span>
+                      </div>
+                      
+                      {/* Type Badge */}
+                      <div className="question-type-badge">
+                        <i className={`fas fa-${question.type === 'voice' ? 'microphone' : 'list'}`}></i>
+                        {question.type === 'voice' ? 'Voice' : 'MCQ'}
                       </div>
                     </div>
                   ))}
+                </div>
+
+                {/* Statistics Summary */}
+                <div className="questions-stats-summary">
+                  <div className="stat-card correct">
+                    <div className="stat-value">{reportData.correctAnswers}</div>
+                    <div className="stat-label">Correct</div>
+                  </div>
+                  <div className="stat-card wrong">
+                    <div className="stat-value">{reportData.wrongAnswers}</div>
+                    <div className="stat-label">Wrong</div>
+                  </div>
+                  <div className="stat-card skipped">
+                    <div className="stat-value">{reportData.skipped}</div>
+                    <div className="stat-label">Skipped</div>
+                  </div>
+                  <div className="stat-card accuracy">
+                    <div className="stat-value">
+                      {Math.round((reportData.correctAnswers / reportData.attempted) * 100)}%
+                    </div>
+                    <div className="stat-label">Accuracy</div>
+                  </div>
                 </div>
               </div>
             )}

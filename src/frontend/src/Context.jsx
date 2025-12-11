@@ -12,6 +12,7 @@ const Context = (props) => {
     const [educatorData,setEducatorData] = useState({});
     const loginBro = (userDetails) =>{
         if(userDetails.role=='educator'){
+            sessionStorage.removeItem('edu_info');
           sessionStorage.setItem('edu_info',JSON.stringify(userDetails));
           setEducatorData(userDetails);
       }else{

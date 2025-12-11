@@ -1,33 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import './LiveQuiz.css';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { adminSocket } from '../../socket';
 
 const LiveQuiz = () => {
-  const [quiz, setQuiz] = useState({
-    id: 'PHY2024',
-    title: 'Physics - Motion & Forces',
-    totalQuestions: 20,
-    timeLimit: 30,
-    roomCode: 'QUIZ-8B2X9P',
-    students: [
-      { id: 1, name: 'Alex Johnson', email: 'alex@edu.com', status: 'active', score: 85, avatarColor: '#8a2be2' },
-      { id: 2, name: 'Sarah Miller', email: 'sarah@edu.com', status: 'active', score: 92, avatarColor: '#f72585' },
-      { id: 3, name: 'Mike Chen', email: 'mike@edu.com', status: 'waiting', score: 78, avatarColor: '#4cc9f0' },
-      { id: 4, name: 'Emma Wilson', email: 'emma@edu.com', status: 'active', score: 88, avatarColor: '#4361ee' },
-      { id: 5, name: 'David Brown', email: 'david@edu.com', status: 'active', score: 95, avatarColor: '#ffd166' },
-      { id: 6, name: 'Lisa Garcia', email: 'lisa@edu.com', status: 'waiting', score: 81, avatarColor: '#06d6a0' },
-      { id: 7, name: 'Tom Smith', email: 'tom@edu.com', status: 'active', score: 87, avatarColor: '#ef476f' },
-      { id: 8, name: 'Priya Patel', email: 'priya@edu.com', status: 'active', score: 90, avatarColor: '#118ab2' },
-    ],
-    maxParticipants: 50,
-    currentParticipants: 8,
-    quizStatus: 'lobby', // lobby, started, ended
-  });
+
+  const { id } = useParams(); // 
+  const [players, setPlayers] = useState([]);;
+
+  const [quiz, setQuiz] = useState({});
+
+
+  const getRoomCodeAndSetQuiz = (quizData) => {
+    const hostName = quizData[0]?.createdBy?.name;
+   
+    const quizD = quizData[0];
+    adminSocket.emit(
+      "createRoom",
+      { hostName, quizD},
+      (response) => {
+        if (response.roomCode) {
+          const roomCode = response.roomCode;
+          // Create the final quiz object with roomCode and detail
+          setQuiz({
+            roomCode,
+            detail: quizData[0]
+          });
+
+          console.log("Quiz room created:", roomCode);
+        } else {
+          alert("Error creating room!");
+        }
+      }
+    );
+  };
+  useEffect(() => {
+    // This will run AFTER setQuiz is called and the component re-renders
+    if (quiz.roomCode) {
+      console.log("State Monitor: Quiz state has been updated:", quiz);
+    }
+  }, [quiz]);
+  const fetchQuiz = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/quizzes/getQuiz", {
+        params: {
+          id: id,
+        }
+      });
+
+      const quizData = response.data;
+      if (quizData) {
+
+        getRoomCodeAndSetQuiz(quizData);
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  console.log(quiz);
+  console.log(players);
+  useEffect(() => {
+    console.log("in use effect")
+    adminSocket.on("updatePlayers", (players) => setPlayers(players));
+
+    fetchQuiz();
+
+
+    // adminSocket.on("leaderboardUpdate", (details) =>
+    //   setLeaderBoardData(details)
+    // );
+
+    return () => {
+      //adminSocket.off("leaderboardUpdate");
+      adminSocket.off("updatePlayers");
+    };
+  }, [])
 
   const [showMaxLimitPopup, setShowMaxLimitPopup] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isQuizStarted, setIsQuizStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(0); // 30 minutes in seconds
 
   // Timer countdown
   useEffect(() => {
@@ -62,17 +117,27 @@ const LiveQuiz = () => {
     }
     setIsQuizStarted(true);
     setQuiz(prev => ({ ...prev, quizStatus: 'started' }));
+    const roomCode = quiz.roomCode;
+    adminSocket.emit("playOnOff",{roomCode,play:true},(response)=>{
+        console.log(response);
+    })
   };
 
   const handleEndQuiz = () => {
     setIsQuizStarted(false);
     setQuiz(prev => ({ ...prev, quizStatus: 'ended' }));
+    const roomCode = quiz.roomCode;
+    adminSocket.emit("playOnOff",{roomCode,play:false},(response)=>{
+        console.log(response);
+    })
     alert('Quiz ended! Redirecting to reports...');
     window.location.href = '/educator/reports';
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion < quiz.totalQuestions) {
+    // Use optional chaining for safety
+    const totalQuestions = quiz.detail?.questions?.length || 0;
+    if (currentQuestion < totalQuestions) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -82,6 +147,9 @@ const LiveQuiz = () => {
       setCurrentQuestion(currentQuestion - 1);
     }
   };
+
+  // Get the data for the currently displayed question (0-indexed array vs 1-indexed display)
+  const currentQuestionData = quiz.detail?.questions[currentQuestion - 1]
 
   const copyRoomCode = () => {
     navigator.clipboard.writeText(quiz.roomCode);
@@ -103,9 +171,9 @@ const LiveQuiz = () => {
       <div className="live-header">
         <div className="header-info">
           <h1>Live Quiz Session</h1>
-          <p>Hosting: <span className="quiz-title">{quiz.title}</span></p>
+          <p>Hosting: <span className="quiz-title">{quiz.detail?.title}</span></p>
         </div>
-        
+
         <div className="room-code-section">
           <div className="room-code-box">
             <div className="code-label">ROOM CODE</div>
@@ -117,13 +185,13 @@ const LiveQuiz = () => {
             </div>
             <p className="code-hint">Share this code with students to join</p>
           </div>
-          
+
           <div className="participants-count">
             <div className="count-box">
               <i className="fas fa-users"></i>
               <div className="count-info">
-                <span className="current">{quiz.currentParticipants}</span>
-                <span className="total">/{quiz.maxParticipants}</span>
+                <span className="current">{players.length}</span>
+                <span className="total">/50</span>
               </div>
             </div>
             <p className="count-label">Students in Lobby</p>
@@ -140,43 +208,43 @@ const LiveQuiz = () => {
               Students in Lobby
             </h2>
             <div className="header-badge">
-              {quiz.currentParticipants} connected
+              {players.length} connected
             </div>
           </div>
 
           <div className="students-list">
-            {quiz.students.map((student) => (
-              <div 
-                key={student.id} 
+            {players.map((student) => (
+              <div
+                key={student.id}
                 className={`student-card ${selectedStudent?.id === student.id ? 'selected' : ''}`}
                 onClick={() => setSelectedStudent(student)}
               >
                 <div className="student-avatar" style={{ background: student.avatarColor }}>
-                  {student.name.charAt(0)}
+                  {student.playerName.charAt(0)}
                 </div>
-                
+
                 <div className="student-info">
-                  <h4>{student.name}</h4>
-                  <p>{student.email}</p>
+                  <h4>{student.playerName}</h4>
+                  <p>{student.playerEmail}</p>
                   <div className="student-meta">
                     <span className="score">
                       <i className="fas fa-star"></i> {student.score} pts
                     </span>
-                    <span 
-                      className="status" 
-                      style={{ color: getStatusColor(student.status) }}
+                    <span
+                      className="status"
+                      style={{ color: getStatusColor('active') }}
                     >
-                      <div 
-                        className="status-dot" 
-                        style={{ background: getStatusColor(student.status) }}
+                      <div
+                        className="status-dot"
+                        style={{ background: getStatusColor(student?.status) }}
                       ></div>
-                      {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                      {student?.status?.charAt(0).toUpperCase() + student?.status?.slice(1)}
                     </span>
                   </div>
                 </div>
 
                 <div className="student-actions">
-                  <button 
+                  <button
                     className="action-btn remove"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -186,11 +254,11 @@ const LiveQuiz = () => {
                   >
                     <i className="fas fa-user-minus"></i>
                   </button>
-                  <button 
+                  <button
                     className="action-btn profile"
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert(`Viewing ${student.name}'s profile`);
+                      alert(`Viewing ${student.playerName}'s profile`);
                     }}
                     title="View profile"
                   >
@@ -202,10 +270,10 @@ const LiveQuiz = () => {
           </div>
 
           {/* Max Limit Warning */}
-          {quiz.currentParticipants >= quiz.maxParticipants * 0.8 && (
+          {players.length >= 50 * 0.8 && (
             <div className="limit-warning">
               <i className="fas fa-exclamation-triangle"></i>
-              <p>Lobby is {Math.round((quiz.currentParticipants / quiz.maxParticipants) * 100)}% full</p>
+              <p>Lobby is {Math.round((players.length / 50) * 100)}% full</p>
             </div>
           )}
         </div>
@@ -227,32 +295,38 @@ const LiveQuiz = () => {
                 {/* Current Question Display */}
                 <div className="current-question-view">
                   <div className="question-header">
-                    <span className="question-number">Question {currentQuestion} of {quiz.totalQuestions}</span>
-                    <span className="question-type">Multiple Choice</span>
+                    <span className="question-number">
+                      Question {currentQuestion} of {quiz.detail?.questions?.length || 0}
+                    </span>
+                    <span className="question-type">{currentQuestionData?.type || 'Multiple Choice'}</span>
                   </div>
-                  
+
                   <div className="question-content">
-                    <p>What is the formula for calculating force using Newton's Second Law of Motion?</p>
                     
+                    <p>{currentQuestionData?.question || 'Loading Question...'}</p>
+
                     <div className="options-grid">
-                      {['F = ma', 'E = mc²', 'P = mv', 'W = Fd'].map((option, index) => (
+                     
+                      {currentQuestionData?.options?.map((optionText, index) => (
                         <div key={index} className="option-card">
                           <div className="option-label">
-                            {String.fromCharCode(65 + index)}
+                            {String.fromCharCode(65 + index)} {/* A, B, C, D */}
                           </div>
-                          <div className="option-text">{option}</div>
-                          <div className="option-stats">
+                        
+                          <div className="option-text">{optionText}</div>
+                          
+                          {/* <div className="option-stats">
                             <span className="percentage">42%</span>
                             <span className="count">5 students</span>
-                          </div>
+                          </div> */}
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Navigation Controls */}
+                 
                   <div className="question-nav">
-                    <button 
+                    <button
                       className="nav-btn prev"
                       onClick={handlePrevQuestion}
                       disabled={currentQuestion === 1}
@@ -260,11 +334,11 @@ const LiveQuiz = () => {
                       <i className="fas fa-arrow-left"></i>
                       Previous Question
                     </button>
-                    
+
                     <div className="question-tracker">
-                      {[...Array(quiz.totalQuestions)].map((_, idx) => (
-                        <div 
-                          key={idx} 
+                      {quiz.detail?.questions?.map((_, idx) => (
+                        <div
+                          key={idx}
                           className={`tracker-dot ${idx + 1 === currentQuestion ? 'active' : idx + 1 < currentQuestion ? 'answered' : ''}`}
                           onClick={() => setCurrentQuestion(idx + 1)}
                         >
@@ -272,11 +346,11 @@ const LiveQuiz = () => {
                         </div>
                       ))}
                     </div>
-                    
-                    <button 
+
+                    <button
                       className="nav-btn next"
                       onClick={handleNextQuestion}
-                      disabled={currentQuestion === quiz.totalQuestions}
+                      disabled={currentQuestion === (quiz.detail?.questions?.length || 0)}
                     >
                       Next Question
                       <i className="fas fa-arrow-right"></i>
@@ -324,15 +398,15 @@ const LiveQuiz = () => {
                 <h2>Quiz Preview</h2>
                 <div className="preview-card">
                   <div className="preview-header">
-                    <h3>{quiz.title}</h3>
+                    <h3>{quiz.detail?.title}</h3>
                     <div className="preview-badges">
                       <span className="badge">
                         <i className="fas fa-question-circle"></i>
-                        {quiz.totalQuestions} Questions
+                        {quiz.detail?.questions?.length} Questions
                       </span>
                       <span className="badge">
                         <i className="fas fa-clock"></i>
-                        {quiz.timeLimit} minutes
+                        {quiz.detail?.time} minutes
                       </span>
                       <span className="badge">
                         <i className="fas fa-microphone"></i>
@@ -340,14 +414,14 @@ const LiveQuiz = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="preview-stats">
                     <div className="stat">
-                      <div className="stat-value">{quiz.currentParticipants}</div>
+                      <div className="stat-value">{players.length}</div>
                       <div className="stat-label">Students Ready</div>
                     </div>
                     <div className="stat">
-                      <div className="stat-value">{quiz.maxParticipants}</div>
+                      <div className="stat-value">50</div>
                       <div className="stat-label">Max Capacity</div>
                     </div>
                     <div className="stat">
@@ -360,50 +434,18 @@ const LiveQuiz = () => {
 
               {/* Controls */}
               <div className="quiz-controls">
-                <div className="control-group">
-                  <h3>Quiz Settings</h3>
-                  <div className="settings-grid">
-                    <div className="setting">
-                      <label>
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider"></span>
-                        <span>Shuffle Questions</span>
-                      </label>
-                    </div>
-                    <div className="setting">
-                      <label>
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider"></span>
-                        <span>Show Scores</span>
-                      </label>
-                    </div>
-                    <div className="setting">
-                      <label>
-                        <input type="checkbox" />
-                        <span className="toggle-slider"></span>
-                        <span>Time Limit</span>
-                      </label>
-                    </div>
-                    <div className="setting">
-                      <label>
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider"></span>
-                        <span>Allow Review</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* Action Buttons */}
                 <div className="action-buttons">
-                  <button 
+                  <button
                     className="btn secondary"
                     onClick={() => setShowMaxLimitPopup(true)}
                   >
                     <i className="fas fa-cog"></i>
                     Settings
                   </button>
-                  <button 
+                  <button
                     className="btn primary"
                     onClick={handleStartQuiz}
                     disabled={quiz.currentParticipants === 0}
@@ -411,7 +453,7 @@ const LiveQuiz = () => {
                     <i className="fas fa-play-circle"></i>
                     Start Quiz Session
                   </button>
-                  <button 
+                  <button
                     className="btn danger"
                     onClick={handleEndQuiz}
                   >
@@ -431,7 +473,7 @@ const LiveQuiz = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h3>Maximum Limit Reached</h3>
-              <button 
+              <button
                 className="close-btn"
                 onClick={() => setShowMaxLimitPopup(false)}
               >
@@ -448,13 +490,13 @@ const LiveQuiz = () => {
                 You need to upgrade your plan to allow more students.
               </p>
               <div className="modal-actions">
-                <button 
+                <button
                   className="btn outline"
                   onClick={() => setShowMaxLimitPopup(false)}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className="btn primary"
                   onClick={() => {
                     setShowMaxLimitPopup(false);

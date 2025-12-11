@@ -481,7 +481,7 @@
   transition: width 0.3s ease;
 }
 
-/* Questions Analysis */
+/* ===== QUESTIONS ANALYSIS - UPDATED VERSION ===== */
 .questions-analysis h3 {
   color: white;
   margin: 0 0 20px 0;
@@ -491,109 +491,317 @@
   gap: 10px;
 }
 
+.questions-filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.filter-btn.active {
+  background: rgba(138, 43, 226, 0.2);
+  color: #8a2be2;
+  border-color: #8a2be2;
+}
+
+.filter-btn.correct {
+  border-color: rgba(0, 255, 136, 0.4);
+}
+
+.filter-btn.wrong {
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+.filter-btn.skipped {
+  border-color: rgba(255, 209, 102, 0.4);
+}
+
+/* Questions Grid - Updated */
 .questions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 15px;
+  margin-bottom: 30px;
 }
 
 .question-summary {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  border: 2px solid;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .question-summary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
 .question-summary.correct {
   border-color: rgba(0, 255, 136, 0.3);
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(0, 0, 0, 0.3));
+  color: #00ff88;
 }
 
 .question-summary.wrong {
   border-color: rgba(255, 107, 107, 0.3);
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.08), rgba(0, 0, 0, 0.3));
+  color: #ff6b6b;
 }
 
 .question-summary.skipped {
   border-color: rgba(255, 209, 102, 0.3);
-}
-
-.question-number {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #8a2be2;
-}
-
-.question-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.status-icon {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.question-summary.correct .status-icon {
-  color: #00ff88;
-}
-
-.question-summary.wrong .status-icon {
-  color: #ff6b6b;
-}
-
-.question-summary.skipped .status-icon {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.08), rgba(0, 0, 0, 0.3));
   color: #ffd166;
 }
 
-.status-text {
-  font-size: 0.85rem;
-  font-weight: 500;
+.question-number-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-family: 'Inter', sans-serif;
+  position: relative;
 }
 
-.question-topic {
+.question-summary.correct .question-number-circle {
+  background: rgba(0, 255, 136, 0.15);
+  border: 3px solid rgba(0, 255, 136, 0.4);
+  color: #00ff88;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.question-summary.wrong .question-number-circle {
+  background: rgba(255, 107, 107, 0.15);
+  border: 3px solid rgba(255, 107, 107, 0.4);
+  color: #ff6b6b;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.question-summary.skipped .question-number-circle {
+  background: rgba(255, 209, 102, 0.15);
+  border: 3px solid rgba(255, 209, 102, 0.4);
+  color: #ffd166;
+  box-shadow: 0 4px 15px rgba(255, 209, 102, 0.3);
+}
+
+.question-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.question-summary.correct .question-status-badge {
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: #00ff88;
+}
+
+.question-summary.wrong .question-status-badge {
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  color: #ff6b6b;
+}
+
+.question-summary.skipped .question-status-badge {
+  background: rgba(255, 209, 102, 0.15);
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  color: #ffd166;
+}
+
+.question-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.tag-row {
   display: flex;
   gap: 5px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
-.topic-badge,
-.difficulty-badge {
-  padding: 3px 8px;
-  border-radius: 10px;
+.tag {
+  padding: 4px 10px;
+  border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.topic-badge {
-  background: rgba(76, 201, 240, 0.2);
+.topic-tag {
+  background: rgba(76, 201, 240, 0.15);
   color: #4cc9f0;
   border: 1px solid rgba(76, 201, 240, 0.3);
 }
 
-.difficulty-badge {
-  background: rgba(255, 209, 102, 0.2);
+.difficulty-tag {
+  background: rgba(255, 209, 102, 0.15);
   color: #ffd166;
   border: 1px solid rgba(255, 209, 102, 0.3);
 }
 
-.question-marks {
+.question-marks-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  justify-content: center;
+}
+
+.marks-awarded {
+  color: inherit;
+  font-size: 1.1rem;
+}
+
+.marks-total {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.question-type-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(138, 43, 226, 0.15);
+  color: #8a2be2;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.questions-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card {
+  text-align: center;
+  padding: 15px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.stat-card.correct {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 0.05));
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.stat-card.wrong {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 107, 107, 0.05));
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.stat-card.skipped {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.1), rgba(255, 209, 102, 0.05));
+  border: 1px solid rgba(255, 209, 102, 0.3);
+}
+
+.stat-card.accuracy {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(138, 43, 226, 0.05));
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 5px;
+  font-family: 'Inter', sans-serif;
+}
+
+.stat-card.correct .stat-value {
+  color: #00ff88;
+}
+
+.stat-card.wrong .stat-value {
+  color: #ff6b6b;
+}
+
+.stat-card.skipped .stat-value {
+  color: #ffd166;
+}
+
+.stat-card.accuracy .stat-value {
+  color: #8a2be2;
+}
+
+.stat-label {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
 }
 
 /* Solutions Tab */
@@ -1385,7 +1593,11 @@
   }
   
   .questions-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .questions-stats-summary {
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .strengths-weaknesses {
@@ -1394,6 +1606,14 @@
   
   .answer-comparison {
     grid-template-columns: 1fr;
+  }
+  
+  .questions-filter-bar {
+    flex-direction: column;
+  }
+  
+  .filter-btn {
+    width: 100%;
   }
 }
 
@@ -1410,7 +1630,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .comparison-stats {
+  .questions-stats-summary {
     grid-template-columns: 1fr;
   }
   
@@ -1418,4 +1638,587 @@
     flex-direction: column;
     align-items: center;
   }
+  
+  .question-number-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+  
+  .question-status-badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+}
+/* ===== FIXED DOWNLOAD BUTTONS ===== */
+
+/* Fix for header-right buttons */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Improved download buttons */
+.download-btn {
+  background: linear-gradient(135deg, #8a2be2, #4361ee);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+}
+
+.download-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+  background: linear-gradient(135deg, #7a1bd2, #3361de);
+}
+
+.solutions-btn {
+  background: rgba(76, 201, 240, 0.15);
+  color: #4cc9f0;
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.solutions-btn:hover:not(:disabled) {
+  background: rgba(76, 201, 240, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 201, 240, 0.3);
+}
+
+/* Loading state for buttons */
+.download-btn:disabled,
+.solutions-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure buttons don't wrap on smaller screens */
+@media (max-width: 1024px) {
+  .header-right {
+    flex-wrap: nowrap;
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    white-space: nowrap;
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-right {
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    flex: 1;
+    max-width: 200px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .download-btn,
+  .solutions-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .download-btn i,
+  .solutions-btn i {
+    font-size: 0.9rem;
+  }
+}
+
+/* Fix header layout on mobile */
+@media (max-width: 768px) {
+  .report-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .header-center {
+    order: 2;
+    width: 100%;
+  }
+  
+  .header-left {
+    order: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .header-right {
+    order: 3;
+    width: 100%;
+  }
+}
+
+/* Ensure buttons are properly aligned */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
+
+/* Add icon spacing */
+.download-btn i,
+.solutions-btn i {
+  font-size: 1rem;
+}
+
+/* Button hover effects */
+.download-btn:hover:not(:disabled) i,
+.solutions-btn:hover:not(:disabled) i {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+/* ===== FIX COMPACTED DOWNLOAD BUTTONS ===== */
+
+/* Reset and fix header layout */
+.report-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 40px;
+  background: rgba(10, 0, 26, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* Fix header sections width */
+.header-left {
+  flex: 0 0 auto;
+}
+
+.header-center {
+  flex: 1 1 auto;
+  min-width: 300px;
+  text-align: center;
+}
+
+.header-right {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Button container fix */
+.header-right {
+  min-width: fit-content;
+}
+
+/* Improved button styling */
+.download-btn,
+.solutions-btn {
+  min-width: 140px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 42px;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #8a2be2, #4361ee);
+  color: white;
+  box-shadow: 0 2px 8px rgba(138, 43, 226, 0.3);
+}
+
+.solutions-btn {
+  background: rgba(76, 201, 240, 0.15);
+  color: #4cc9f0;
+  border: 1px solid rgba(76, 201, 240, 0.3);
+}
+
+/* Hover effects */
+.download-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
+  background: linear-gradient(135deg, #7a1bd2, #3361de);
+}
+
+.solutions-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(76, 201, 240, 0.25);
+  box-shadow: 0 4px 12px rgba(76, 201, 240, 0.3);
+}
+
+/* Loading state */
+.download-btn:disabled,
+.solutions-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Loading text fix */
+.download-btn:disabled span,
+.solutions-btn:disabled span {
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Icon spacing */
+.download-btn i,
+.solutions-btn i {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* Text container to prevent overlap */
+.download-btn span,
+.solutions-btn span {
+  display: inline-block;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive fixes */
+@media (max-width: 1200px) {
+  .report-header {
+    padding: 15px 30px;
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    min-width: 130px;
+    padding: 9px 14px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .header-center {
+    order: 2;
+    flex-basis: 100%;
+    margin-top: 10px;
+  }
+  
+  .header-right {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .header-left {
+    order: 1;
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-header {
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    min-width: 120px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    height: 38px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .download-btn,
+  .solutions-btn {
+    min-width: 110px;
+    padding: 7px 10px;
+    font-size: 0.78rem;
+    height: 36px;
+  }
+  
+  .download-btn span,
+  .solutions-btn span {
+    max-width: 70px;
+  }
+  
+  /* Shorter text on very small screens */
+  .download-btn span::after {
+    content: ' Report';
+  }
+  
+  .solutions-btn span::after {
+    content: ' Solutions';
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    min-width: 100px;
+  }
+}
+
+/* Fix for when buttons are in loading state */
+.downloading .download-btn span,
+.downloading-solutions .solutions-btn span {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Ensure header doesn't break */
+.report-header {
+  position: relative;
+  z-index: 100;
+}
+
+/* Add spacing between icon and text */
+.download-btn i,
+.solutions-btn i {
+  margin-right: 4px;
+}
+/* ===== FIX DOWNLOAD BUTTON TEXT VISIBILITY ===== */
+
+/* Button container spacing */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Base button styles - ensure full text visibility */
+.download-btn,
+.solutions-btn {
+  min-width: 160px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  height: 42px;
+  box-sizing: border-box;
+}
+
+/* Download button specific */
+.download-btn {
+  background: linear-gradient(135deg, #8a2be2, #4361ee);
+  color: white;
+  box-shadow: 0 2px 10px rgba(138, 43, 226, 0.3);
+}
+
+/* Solutions button specific */
+.solutions-btn {
+  background: rgba(76, 201, 240, 0.15);
+  color: #4cc9f0;
+  border: 1px solid rgba(76, 201, 240, 0.3);
+}
+
+/* Ensure text is fully visible */
+.download-btn span,
+.solutions-btn span {
+  display: inline-block;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+/* Hover effects */
+.download-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+  background: linear-gradient(135deg, #7a1bd2, #3361de);
+}
+
+.solutions-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(76, 201, 240, 0.25);
+  box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+}
+
+/* Loading states */
+.download-btn:disabled,
+.solutions-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure buttons don't shrink */
+.header-right {
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .download-btn,
+  .solutions-btn {
+    min-width: 150px;
+    padding: 9px 18px;
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 992px) {
+  /* Stack header on tablet */
+  .report-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .header-left,
+  .header-center,
+  .header-right {
+    width: 100%;
+  }
+  
+  .header-right {
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    min-width: 140px;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .download-btn,
+  .solutions-btn {
+    min-width: 130px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .header-right {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .download-btn,
+  .solutions-btn {
+    min-width: 120px;
+    padding: 7px 12px;
+    font-size: 0.82rem;
+  }
+  
+  /* Adjust text for very small screens but keep it visible */
+  .download-btn span,
+  .solutions-btn span {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* On very small screens, use slightly shorter text */
+  .download-btn span::after {
+    content: 'Report';
+  }
+  
+  .solutions-btn span::after {
+    content: 'Solutions';
+  }
+  
+  .download-btn span,
+  .solutions-btn span {
+    font-size: 0.8rem;
+  }
+  
+  .download-btn,
+  .solutions-btn {
+    min-width: 110px;
+    padding: 6px 10px;
+  }
+}
+
+/* Special case for loading text */
+.download-btn:disabled span,
+.solutions-btn:disabled span {
+  padding: 0 5px;
+}
+
+/* Make sure the button container has enough space */
+.header-right {
+  min-width: 340px; /* Enough for two buttons with text */
+}
+
+@media (max-width: 992px) {
+  .header-right {
+    min-width: auto;
+  }
+}
+
+/* Prevent text wrapping inside buttons */
+.download-btn,
+.solutions-btn {
+  overflow: visible;
+}
+
+/* Add subtle animation for better visibility */
+.download-btn:hover:not(:disabled) span,
+.solutions-btn:hover:not(:disabled) span {
+  position: relative;
+  z-index: 1;
 }

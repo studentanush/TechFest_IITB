@@ -4,7 +4,7 @@ All internal features (upload document, generate quiz, save quiz) should only wo
 import jwt from "jsonwebtoken";
 
 export const protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = req.headers["authorization"];
 
   if (!token) {
     return res.status(401).json({ message: "Not authorized, token missing" });
@@ -12,7 +12,7 @@ export const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, email }
+    req.userId = decoded.id; // { id, email }
     next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid token" });
