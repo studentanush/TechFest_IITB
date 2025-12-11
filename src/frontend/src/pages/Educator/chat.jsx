@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Upload, FileText, Loader2, Download, CheckCircle, XCircle, RefreshCw, X, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 function Chat() {
   const [messages, setMessages] = useState([
@@ -27,6 +31,21 @@ function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const FormattedMessage = ({ content }) => (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+      components={{
+        p: ({ ...props }) => <p className="text-sm leading-relaxed mb-2" {...props} />,
+        h1: ({ ...props }) => <h1 className="text-lg font-bold my-2" {...props} />,
+        h2: ({ ...props }) => <h2 className="text-base font-semibold my-2" {...props} />,
+        strong: ({ ...props }) => <strong className="font-semibold" {...props} />,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  )
+
   const addAssistantMessage = (content) => {
     setMessages(prev => [...prev, {
       type: 'assistant',
@@ -43,6 +62,10 @@ function Chat() {
 
     if (prompt.includes('help') || prompt.includes('how')) {
       return "I can help you generate quizzes from your documents! Here's how:\n1. Upload a PDF, DOCX, or TXT file\n2. Tell me how many questions you want (minimum 5)\n3. I'll generate a comprehensive quiz for you\n\nYou can also ask me to regenerate questions or modify the quiz.";
+    }
+
+    if (context.hasFile && !prompt.match(/\d+\s*(questions?|quiz)/)) {
+      return "Please stay contextual to the uploaded document. Text prompts are disabled while a document is attached.";
     }
 
     if (!context.hasFile && prompt.match(/\d+\s*(questions?|quiz)/)) {
@@ -124,30 +147,25 @@ function Chat() {
     setIsLoading(true);
 
     if (isTextPrompt) {
-      // Handle text-only prompts (Gemini API)
-      addAssistantMessage(`Generating ${numQuestions} questions from your prompt. This may take a moment...`);
+      addAssistantMessage(`Generating ${numQuestions} questions from your prompt...`);
 
       try {
-
-
         const response = await fetch("http://localhost:5000/generate-quiz", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             text: textPrompt,
             numQuestions
           })
         });
 
-
         if (!response.ok) {
           throw new Error(`Server error: ${response.status}`);
         }
 
+        // RECEIVE VALID JSON
         const data = await response.json();
-        console.log(data);
+        console.log("Received JSON:", data);
 
         setGeneratedQuiz(data);
         setConversationContext(prev => ({
@@ -156,20 +174,22 @@ function Chat() {
         }));
 
         setMessages(prev => [...prev, {
-          type: 'success',
-          content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
+          type: "success",
+          content: `Successfully generated "${data.title}" with ${data.questions.length} questions!`,
           quizData: data
         }]);
       } catch (error) {
         setMessages(prev => [...prev, {
-          type: 'error',
-          content: `Failed to generate quiz: ${error.message}`,
+          type: "error",
+          content: `Failed to generate quiz: ${error.message}`
         }]);
       } finally {
         setIsLoading(false);
       }
+
       return;
     }
+
 
     // Handle file-based generation
     if (!file) {
@@ -207,7 +227,7 @@ function Chat() {
 
         setMessages(prev => [...prev, {
           type: 'success',
-          content: `Successfully generated "${data.quiz_name}" with ${data.questions.length} questions!`,
+          content: `Successfully generated "${data.title}" with ${data.questions.length} questions!`,
           timestamp: new Date(),
           quizData: data
         }]);
@@ -250,11 +270,11 @@ function Chat() {
       } else if (llmResponse.startsWith('generate_text:')) {
         const numQuestions = parseInt(llmResponse.split(':')[1]);
         setIsLoading(true);
-        try{
+        try {
           await generateQuiz(numQuestions, true, userMessage);
-        }catch(err){
+        } catch (err) {
           addAssistantMessage(`Failed to generate quiz from text prompt: ${err.message}`);
-        }finally{
+        } finally {
           setIsLoading(false);
         }
       } else if (llmResponse.startsWith('generate_text_prompt:')) {
@@ -290,10 +310,28 @@ function Chat() {
   };
 
   const handleRegenerate = () => {
-    if (conversationContext.lastQuizParams) {
-      setInput(`Regenerate ${conversationContext.lastQuizParams.numQuestions} questions`);
+    const params = conversationContext.lastQuizParams;
+    if (!params) return;
+
+    // Case 1: Regenerate from text prompt
+    if (params.isTextPrompt) {
+      setInput(`Regenerate ${params.numQuestions} questions from: ${params.textPrompt}`);
+      return;
+    }
+
+    // Case 2: Regenerate from agentic URL
+    if (params.agenticUrl) {
+      setInput(`Regenerate quiz from URL: ${params.agenticUrl}`);
+      return;
+    }
+
+    // Case 3: Regenerate from document
+    if (params.numQuestions) {
+      setInput(`Regenerate ${params.numQuestions} questions`);
+      return;
     }
   };
+
 
   const handleAttach = () => {
     fileInputRef.current?.click();
@@ -305,24 +343,57 @@ function Chat() {
 
 
   const handleAgenticGenerate = async (url) => {
-    // TODO: Implement agentic mode quiz generation from URL
-    console.log('Generating quiz from URL:', agenticUrl);
+    setShowAgenticModal(false)
+    console.log("AGENTIC URL RECEIVED:", url);
+    addAssistantMessage(`Generating questions from URL...`);
+    setIsLoading(true);
 
-    setShowAgenticModal(false);
-    setAgenticUrl(url);
-    const response = await fetch('http://localhost:5000/agentic-mode', {
-      method: "POST",
-      body: url
-    })
+    try {
+      const response = await fetch("http://localhost:5000/agentic-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      });
 
-    const data = response.json()
-    setGeneratedQuiz(data)
-    setConversationContext(prev => ({
-      ...prev,
-      lastQuizParams: url
-    }))
-    addAssistantMessage(`I'll generate a quiz from the URL: ${agenticUrl}`);
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      // Receive valid JSON from server
+      const data = await response.json();
+      console.log("Received Agentic JSON:", data);
+
+      setGeneratedQuiz(data);
+
+      // Store last params (no numQuestions or textPrompt here)
+      setConversationContext(prev => ({
+        ...prev,
+        lastQuizParams: { agenticUrl: url }
+      }));
+
+      // Add success message + quiz UI
+      setMessages(prev => [
+        ...prev,
+        {
+          type: "success",
+          content: `Successfully generated "${data.title}" with ${data.questions.length} questions!`,
+          quizData: data
+        }
+      ]);
+
+    } catch (error) {
+      setMessages(prev => [
+        ...prev,
+        {
+          type: "error",
+          content: `Failed to generate agentic quiz: ${error.message}`
+        }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
 
   const handleSaveQuiz = async (quizData) => {
     try {
@@ -366,7 +437,7 @@ function Chat() {
           <div key={index} className="flex justify-end mb-4">
             <div className="max-w-[70%]">
               <div className=" text-black rounded-2xl px-4 py-3 shadow-md bg-white">
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                <FormattedMessage content={msg.content} />
               </div>
             </div>
           </div>
@@ -377,7 +448,7 @@ function Chat() {
           <div key={index} className="flex justify-start mb-4">
             <div className="max-w-[70%]">
               <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl px-4 py-3 shadow-md">
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                <FormattedMessage content={msg.content} />
               </div>
             </div>
           </div>
@@ -399,7 +470,7 @@ function Chat() {
                   <div className="space-y-4">
                     <div className="border-t border-green-200 pt-4">
                       <h3 className="font-semibold text-gray-800 mb-3 text-base">
-                        ðŸ“‹ {msg.quizData.quiz_name}
+                        {msg.quizData.title}
                       </h3>
 
                       {/* Questions List */}
@@ -412,10 +483,10 @@ function Chat() {
                                 Question {idx + 1}
                               </h4>
                               <span className={`text-xs px-2 py-1 rounded-full ${q.difficulty === 'easy'
-                                  ? 'bg-green-100 text-green-700'
-                                  : q.difficulty === 'medium'
-                                    ? 'bg-yellow-100 text-yellow-700'
-                                    : 'bg-red-100 text-red-700'
+                                ? 'bg-green-100 text-green-700'
+                                : q.difficulty === 'medium'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : 'bg-red-100 text-red-700'
                                 }`}>
                                 {q.difficulty}
                               </span>
@@ -429,17 +500,17 @@ function Chat() {
                             {/* Options */}
                             <div className="space-y-1.5 mb-3">
                               {q.options.map((option, optIdx) => {
-                                const isCorrect = option.startsWith(q.correct_option_letter);
+                                const isCorrect = option.startsWith(q.correctAnswerOption);
                                 return (
                                   <div
                                     key={optIdx}
                                     className={`text-xs px-3 py-2 rounded-md ${isCorrect
-                                        ? 'bg-green-50 border border-green-300 text-green-800 font-medium'
-                                        : 'bg-gray-50 border border-gray-200 text-gray-700'
+                                      ? 'bg-green-50 border border-green-300 text-green-800 font-medium'
+                                      : 'bg-gray-50 border border-gray-200 text-gray-700'
                                       }`}
                                   >
                                     {option}
-                                    {isCorrect && <span className="ml-2">âœ“</span>}
+                                    {isCorrect && <span className="ml-2">✔️</span>}
                                   </div>
                                 );
                               })}
@@ -474,14 +545,14 @@ function Chat() {
                     <div className="border-t border-green-200 pt-4 flex gap-2">
                       <button
                         onClick={() => handleSaveQuiz(msg.quizData)}
-                        className="px-4 py-2 bg-linear-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 bg-[#8F00FF] text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm flex items-center gap-2"
                       >
                         <Download className="w-4 h-4" />
                         Save Quiz
                       </button>
                       <button
                         onClick={downloadQuiz}
-                        className="px-4 py-2 bg-linear-to-r from-gray-600 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 bg-[#8F00FF] text-white text-sm font-medium rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all shadow-sm flex items-center gap-2"
                       >
                         <Download className="w-4 h-4" />
                         Download JSON
@@ -516,11 +587,9 @@ function Chat() {
   return (
     <div className="flex flex-col h-screen ">
       {/* Header */}
-      <div className="bg-[#0c001e] px-6 py-4 ">
-        <p className="text-sm text-white text-center ">
 
-          <span className='font-black'>â„¹ï¸ </span>Create custom quizzes from your documents or give a text prompt</p>
-      </div>
+      <p className="text-sm text-white text-center relative bottom-10 ">Create custom quizzes from your documents or give a text prompt</p>
+
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto px-6 py-6 bg-[#0c001e]">
@@ -538,7 +607,7 @@ function Chat() {
       </div>
 
       {/* Input Container - Purple/Lavender theme matching image */}
-      <div className="bg-[#0c001e] backdrop-blur-sm px-6 py-4 ">
+      <div className="bg-[#0c001e] backdrop-blur-sm px-6 py-4">
         <div className="max-w-5xl mx-auto">
           <div className=" bg-[#100027] border-2 border-white rounded-3xl p-4 shadow-lg ">
             {/* Action Buttons Row */}
@@ -553,7 +622,7 @@ function Chat() {
 
               <button
                 onClick={handleRegenerate}
-                disabled={!conversationContext.lastQuizParams}
+                disabled={isLoading}
                 className="px-4 py-2 bg-white/90 text-gray-700 text-sm font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -562,6 +631,7 @@ function Chat() {
 
               <button
                 onClick={handleAgenticMode}
+                disabled={isLoading}
                 className="px-4 py-2 bg-white/90 text-gray-700 text-sm font-medium rounded-full hover:bg-white hover:shadow-md transition-all flex items-center gap-2 border border-purple-200"
               >
                 <Sparkles className="w-4 h-4" />
@@ -624,7 +694,7 @@ function Chat() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   URL
                 </label>
                 <input
@@ -633,14 +703,14 @@ function Chat() {
                   onChange={(e) => setAgenticUrl(e.target.value)}
 
                   placeholder="https://example.com/article"
-                  className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-purple-200 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
               <button
-                onClick={handleAgenticGenerate}
+                onClick={() => handleAgenticGenerate(agenticUrl)}
                 disabled={!agenticUrl.trim()}
-                className="w-full px-6 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-black font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Generate Quiz
               </button>

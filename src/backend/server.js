@@ -180,9 +180,12 @@ adminNamespace.on("connection", (socket) => {
 });
 
 app.post('/generate-quiz', async (req, res) => {
-  const {text, num_questions} = req.body;
-const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
-  const prompt = `
+  const { text, num_questions } = req.body;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    const prompt = `
     YOU ARE AN EXPERT QUIZ GENERATOR, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE USER NEED, YOU WILL RECEIVE THE PROMPT.
     Create EXACTLY ${num_questions} number of questions.
 
@@ -191,7 +194,7 @@ const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
 
 
     Structure:
-    - quiz_name: Concise title of 2-3 words summarizing the context
+    - title: Concise title of 2-3 words summarizing the context
     - questions: Array with EXACTLY ${num_questions} question objects
 
 
@@ -199,8 +202,8 @@ const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
     - question: Question text
     - type: "scq" (single correct)
     - options: Array ["A) option1", "B) option2", "C) option3", "D) option4"]
-    - correct_option_content: Full text of correct answer
-    - correct_option_letter: Letter only (A, B, C, or D)
+    - correctAnswer: Full text of correct answer
+    - correctAnswerOption: Letter only (A, B, C, or D)
     - context: Brief source excerpt (under 100 chars)
     - explanation: Detailed solution
     - difficulty: -2.0 to 2.0 (decimals allowed: -1.5, 0, 0.5, 1.0, etc.)
@@ -211,43 +214,99 @@ const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
         "reframe_options": false,
         "reformed_options": ""
     }}
-    `
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt+text
-  });
-  console.log(response.text);
-  const cleanedResponse = response.text.replace(/```json|```/g, "")
-  console.log("Cleaned Response: ", cleanedResponse);
-  return cleanedResponse;
-})
 
+    FOLLOWING ARE THE "CORRECT" EXAMPLES OF A OUTPUT FORMAT JSON YOU MUST REPLACE CONTENT ACCORDINGLY:
 
+    {
+    "title": "Sample Quiz Title",
+    "time": "", (not to be filled)
+    "status":"", (not to be filled)              
+    "questions": [
+        {
+        "question": "What is...?",
+        "type": "scq",
+        "options": ["A) Option one", "B) Option two", "C) Option three", "D) Option four"],
+        "correctAnswer": "Option one",
+        "correctAnswerOption": "A",
+        "context": "Brief source excerpt",
+        "explanation": "This is correct because...",
+        "difficulty": 0.5,
+        "sub_topics": ["topic1", "topic2"],
+        "reframe": {"reframe_qns": false, "reformed_qns": "", "reframe_options": false, "reformed_options": ""}
+        }
+    ]
+    }
+
+    ABSOLUTELY DO NOT REPEAT OR DUPLICATE KEYS.  RETURN STRICT VALID JSON ONLY.
+    NO MARKDOWNS, NO BACKTICKS, NO EXTRA TEXT, JUST CLEARLY THE JSON
+
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt + text
+    });
+
+    // Gemini returns markdown text → clean first
+    let raw = response.text;
+    console.log(raw)
+    // REMOVE code fences like ```json or ```
+    raw = raw.replace(/```json/gi, "")
+             .replace(/```/g, "")
+             .trim();
+
+    // REMOVE trailing commas (Gemini sometimes does this)
+    raw = raw.replace(/,\s*}/g, "}")
+             .replace(/,\s*]/g, "]");
+
+    // SAFELY PARSE JSON
+    let jsonData;
+    try {
+      jsonData = JSON.parse(raw);
+    } catch (err) {
+      console.error("JSON Parse Error → raw output:", raw);
+      return res.status(500).json({
+        error: "Model output was not valid JSON.",
+        details: err.message,
+        raw
+      });
+    }
+
+    // Return CLEAN JSON to frontend
+    return res.json(jsonData);
+
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 app.post('/agentic-mode', async (req, res) => {
-const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
-  const prompt = `
+  const { url } = req.body;
+  const num_questions = 10; // fixed
 
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    YOU ARE AN EXPERT QUIZ GENERATOR FROM GIVEN URL, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE WEBSITE OF THE URL, WHICH YOU WILL RECEIVE AS A PROMPT.
-    Create EXACTLY {num_questions} number of questions.
-    where {num_questions} is number of questions for which quiz is requested for.
+    const prompt = `
+    YOU ARE AN EXPERT QUIZ GENERATOR, YOU MUST GENERATE QUIZZES ON THE BASIS OF THE USER NEED, YOU WILL RECEIVE THE PROMPT.
+    Create EXACTLY ${num_questions} number of questions.
 
 
     CRITICAL: Output complete, RETURN A STRICTLY RETURN A VALID JSON WITHOUT ANY DECORATION OF FOLLOWING STRUCTURE;
 
 
     Structure:
-    - quiz_name: Concise title of 2-3 words summarizing the context
-    - questions: Array with EXACTLY {num_questions} question objects
+    - title: Concise title of 2-3 words summarizing the context
+    - questions: Array with EXACTLY ${num_questions} question objects
 
 
     Each question object:
     - question: Question text
     - type: "scq" (single correct)
     - options: Array ["A) option1", "B) option2", "C) option3", "D) option4"]
-    - correct_option_content: Full text of correct answer
-    - correct_option_letter: Letter only (A, B, C, or D)
+    - correctAnswer: Full text of correct answer
+    - correctAnswerOption: Letter only (A, B, C, or D)
     - context: Brief source excerpt (under 100 chars)
     - explanation: Detailed solution
     - difficulty: -2.0 to 2.0 (decimals allowed: -1.5, 0, 0.5, 1.0, etc.)
@@ -258,14 +317,72 @@ const ai = new GoogleGenAI({apiKey:process.env.API_KEY})
         "reframe_options": false,
         "reformed_options": ""
     }}
-    `
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt+req.body.url
-  });
-  console.log(response.text);
-  return response.text
-})
+
+    FOLLOWING ARE THE "CORRECT" EXAMPLES OF A OUTPUT FORMAT JSON YOU MUST REPLACE CONTENT ACCORDINGLY:
+
+    {
+    "title": "Sample Quiz Title",
+    "time": "", (not to be filled)
+    "status":"", (not to be filled)              
+    "questions": [
+        {
+        "question": "What is...?",
+        "type": "scq",
+        "options": ["A) Option one", "B) Option two", "C) Option three", "D) Option four"],
+        "correctAnswer": "Option one",
+        "correctAnswerOption": "A",
+        "context": "Brief source excerpt",
+        "explanation": "This is correct because...",
+        "difficulty": 0.5,
+        "sub_topics": ["topic1", "topic2"],
+        "reframe": {"reframe_qns": false, "reformed_qns": "", "reframe_options": false, "reformed_options": ""}
+        }
+    ]
+    }
+
+    ABSOLUTELY DO NOT REPEAT OR DUPLICATE KEYS.  RETURN STRICT VALID JSON ONLY.
+    NO MARKDOWNS, NO BACKTICKS, NO EXTRA TEXT, JUST CLEARLY THE JSON
+
+    `;
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt + "\nURL: " + url
+    });
+
+    // Correct Gemini SDK usage
+    let raw = response.text;
+
+    // Clean markdown
+    raw = raw.replace(/```json/gi, "")
+             .replace(/```/g, "")
+             .trim();
+
+    // Remove trailing commas
+    raw = raw.replace(/,\s*}/g, "}")
+             .replace(/,\s*]/g, "]");
+
+    // Safe parse
+    let jsonData;
+    try {
+      jsonData = JSON.parse(raw);
+    } catch (err) {
+      console.error("JSON Parse Error → RAW:", raw);
+      return res.status(500).json({
+        error: "Invalid JSON from Gemini",
+        details: err.message,
+        raw
+      });
+    }
+
+    // Success
+    return res.json(jsonData);
+
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 

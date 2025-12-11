@@ -34,8 +34,8 @@ class Question(BaseModel):
     question: str = Field(description="The question text")
     type: str = Field(description="Question type: scq, mcq, or ve")
     options: List[str] = Field(description="4 options as ['A) ...', 'B) ...', 'C) ...', 'D) ...']")
-    correct_option_content: str = Field(description="Full text of correct answer")
-    correct_option_letter: str = Field(description="Letter only: A, B, C, or D")
+    correctAnswer: str = Field(description="Full text of correct answer")
+    correctAnswerOption: str = Field(description="Letter only: A, B, C, or D")
     context: str = Field(description="Source excerpt under 100 chars")
     explanation: str = Field(description="Why this answer is correct")
     difficulty: float = Field(description="Difficulty from -2.0 to 2.0, decimals allowed")
@@ -43,7 +43,7 @@ class Question(BaseModel):
     reframe: Reframe = Field(default_factory=Reframe)
 
 class Quiz(BaseModel):
-    quiz_name: str = Field(description="Concise title (3-8 words)")
+    title: str = Field(description="Concise title (3-8 words)")
     questions: List[Question] = Field(description="Array of question objects")
 
 parser = PydanticOutputParser(pydantic_object=Quiz)
@@ -70,9 +70,10 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
         buffer.write(await file.read())
     if(file.content_type=="application/pdf"):
         loaders = PyPDFLoader(file_path=file_path)
-    if(file.content_type=="application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
+    elif(file.content_type=="application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
         loaders = Docx2txtLoader(file_path=file_path)
-    if(file.content_type=="text/plain"):
+        print(loaders)
+    elif(file.content_type=="text/plain"):
         loaders = TextLoader(file_path=file_path)
 
     documents = loaders.load()
@@ -91,15 +92,15 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
     CRITICAL: Output complete, valid JSON. DO NOT truncate.
 
     Structure:
-    - quiz_name: Concise title (3-8 words) summarizing the document
+    - title: Concise title summarizing the document of (3-8 words)           
     - questions: Array with EXACTLY {num_questions} question objects
 
     Each question object:
     - question: Question text
     - type: "scq" (single correct), "mcq" (multiple correct)
     - options: Array ["A) option1", "B) option2", "C) option3", "D) option4"]
-    - correct_option_content: Full text of correct answer
-    - correct_option_letter: Letter only (A, B, C, or D)
+    - correctAnswer: Full text of correct answer
+    - correctAnswerOption: Letter only (A, B, C, or D)
     - context: Brief source excerpt (under 100 chars)
     - explanation: Detailed solution
     - difficulty: -2.0 to 2.0 (decimals allowed: -1.5, 0, 0.5, 1.0, etc.)
@@ -114,14 +115,16 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
     Return ONLY valid JSON with this EXACT structure (no markdown, no code blocks):
 
     {{
-    "quiz_name": "...",
+    "title": "...",
+    "time": "",
+    "status":"",                       
     "questions":
     [
         {{"question": "...",
         "type": "...", 
         "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
-        "correct_option_content": "...",
-        "correct_option_letter": "...",
+        "correctAnswer": "...",
+        "correctAnswerOption": "...",
         "context": "...",
         "explanation": "...", 
         "difficulty":"..." , 
@@ -139,14 +142,16 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
     FOLLOWING ARE THE "CORRECT" EXAMPLES OF A OUTPUT FORMAT JSON YOU MUST REPLACE CONTENT ACCORDINGLY:
 
     {{
-    "quiz_name": "Brief Quiz Title",
+    "title": "Sample Quiz Title",
+    "time": "",
+    "status":"",                                
     "questions": [
         {{
         "question": "What is...?",
         "type": "scq",
         "options": ["A) Option one", "B) Option two", "C) Option three", "D) Option four"],
-        "correct_option_content": "Option one",
-        "correct_option_letter": "A",
+        "correctAnswer": "Option one",
+        "correctAnswerOption": "A",
         "context": "Brief source excerpt",
         "explanation": "This is correct because...",
         "difficulty": 0.5,
@@ -155,7 +160,6 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
         }}
     ]
     }}      
-
                                                 
     DOCUMENT CONTEXT:
     {context}
@@ -175,7 +179,7 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
     total_questions= int(res)
     batch_size=5
     all_questions = []
-    quiz_name = None
+    title = None
     if(total_questions<batch_size):
         return "MINIMUM 5 QUESTIONS ARE REQUIRED TO BE GENERATED"
         
@@ -199,8 +203,8 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
                 
                 if len(valid_questions) >= current_size:
                     all_questions.extend(valid_questions[:current_size])
-                    if not quiz_name:
-                        quiz_name = batch_quiz.quiz_name
+                    if not title:
+                        title = batch_quiz.title
                     print(f"Got {current_size} questions (Total: {len(all_questions)})")
                     break
                 else:
@@ -213,9 +217,10 @@ async def generateChain(prompt: str = Form(...),file:UploadFile = File(...)):
             break
     
     quiz = Quiz(
-        quiz_name=quiz_name or "Generated Quiz",
+        title=title or "Generated Quiz",
         questions=all_questions[:total_questions]
     )
     quiz_json = quiz.model_dump()
+    print(quiz_json)
     return quiz_json
 
