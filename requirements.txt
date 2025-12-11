@@ -1,50 +1,50 @@
-# Python dependencies for the optional RAG / QA / question-generation worker
-# Use this file only if you intend to run Python-based indexing / retrieval / generation.
-# Install with:
-#   python -m venv .venv
-#   source .venv/bin/activate   # or .venv\Scripts\activate on Windows
-#   pip install -r requirements.txt
-#
-# Notes:
-# - Adjust faiss-cpu vs faiss-gpu depending on your hardware.
-# - If you plan to use Google GenAI from Python, uncomment the google-generative-ai line
-#   or install the provider client you will use.
-# - Pin or change versions as needed for your environment.
+--- QUIZZCO.AI - AI-POWERED QUIZ GENERATOR ---
 
-python-dotenv>=1.0.0
-numpy>=1.24.0
-tqdm>=4.64.0
-nltk>=3.8.1
-PyPDF2>=3.0.1
-pdfminer.six>=20221105
+Python Setup (models/)
 
-# ML infra
-torch>=2.0.0       # required by many embedding / transformer libs
-transformers>=4.30.0
-sentence-transformers>=2.2.2
+Python Version
+Python 3.10.0
 
-# Vector DB / similarity search
-faiss-cpu>=1.7.4   # use faiss-gpu instead if you have CUDA and want GPU acceleration
-# faiss-gpu>=1.7.4   # uncomment this line instead of faiss-cpu for GPU support
+Navigate to the models folder
 
-# Higher-level RAG / orchestration
-langchain>=0.0.200
+cd models
+pip install -r dependencies.txt
 
-# Optional LLM provider SDKs (choose what you use)
-openai>=0.27.0
-# google-generative-ai>=0.0.0   # uncomment if you want to call Google GenAI from Python
 
-# Utilities & optional extras
-scikit-learn>=1.2.0
-sentencepiece>=0.1.97
-accelerate>=0.20.3
+Node Version
+Latest Node.js LTS (20+ recommended)
 
-# Local dev / server (if you plan to run a small Python HTTP worker)
-fastapi>=0.95.0
-uvicorn[standard]>=0.22.0
+1. Navigate to frontend
+cd src/frontend
 
-# Optional: helpful for text processing/cleaning
-regex>=2023.6.3
-beautifulsoup4>=4.12.2
+2. Install dependencies
+npm install
 
-# End of file
+If the above fails (fallback):
+npm install @tailwindcss/vite axios katex lucide-react react react-dom react-icons react-markdown react-router-dom react-toastify rehype-katex remark-math socket.io-client tailwindcss toastify
+npm install
+
+
+3. Navigate to backend
+cd src/backend
+
+4. Install dependencies
+npm install
+
+If the above fails (fallback):
+npm install @google/genai @google/generative-ai bcryptjs cors dotenv express express-rate-limit jsonwebtoken mongoose multer nanoid socket.io
+npm install
+
+
+------------SUMMARY-----------------
+Models
+cd models
+pip install -r requirements.txt
+
+Frontend
+cd src/frontend
+npm install
+
+Backend
+cd src/backend
+npm install
