@@ -485,6 +485,8 @@ const AttendQuiz = () => {
       }));
       console.log(answers);
       // Submit to backend
+
+      console.log(quizData)
       const result = await submitAnswersToBackend(quizId, answers);
 
       // Redirect to report page

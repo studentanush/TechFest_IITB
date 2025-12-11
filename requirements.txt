@@ -27,7 +27,7 @@ cd src/frontend
 npm install
 
 If the above fails (fallback):
-npm install @tailwindcss/vite axios katex lucide-react react react-dom react-icons react-markdown react-router-dom react-toastify rehype-katex remark-math socket.io-client tailwindcss toastify
+npm install @tailwindcss/vite axios katex lucide-react react react-dom react-icons react-markdown react-router-dom react-toastify rehype-katex remark-math socket.io-client tailwindcss toastify ogl
 npm install
 
 
@@ -38,7 +38,7 @@ cd src/backend
 npm install
 
 If the above fails (fallback):
-npm install @google/genai @google/generative-ai bcryptjs cors dotenv express express-rate-limit jsonwebtoken mongoose multer nanoid socket.io
+npm install @google/genai @google/generative-ai bcryptjs cors dotenv express express-rate-limit jsonwebtoken mongoose multer nanoid socket.io 
 npm install
 
 

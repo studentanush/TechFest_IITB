@@ -15,11 +15,12 @@ import Register from './pages/Auth/Register'
 import StudentDashboard from './pages/Student/StudentDashboard'
 import Reports from './pages/Educator/Reports'
 import { ToastContainer } from 'react-toastify'
+import StudentReport from './pages/Student/StudentReport'
 
 function App() {
-  
+  //const isAuthenticatedStudent = 
 
-  return (
+    return (
     <>
       <ToastContainer/>
       <Routes>
@@ -36,6 +37,7 @@ function App() {
         <Route path="/register" element = {<Register/>}></Route> 
         <Route path="/student/dashboard" element = {<StudentDashboard/>}></Route> 
         <Route path="/educator/reports" element = {<Reports/>}></Route> 
+        <Route path="/student/reports" element = {<StudentReport/>}></Route> 
        
       </Routes>
     </>

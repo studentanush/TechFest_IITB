@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import Aurora from '../../../background/Aurora';
 
 function Chat() {
   const [messages, setMessages] = useState([
@@ -136,7 +135,7 @@ function Chat() {
         setMessages(prev => [...prev, {
           type: 'error',
           content: 'Please upload a PDF, DOCX, or TXT file.',
-        }]);
+        }]  );
       }
     }
   };
@@ -396,16 +395,25 @@ function Chat() {
   const handleSaveQuiz = async (quizData) => {
     try {
       // TODO: Replace with actual endpoint
-      const response = await fetch('/api/quiz/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quizData)
-      });
+      const educatorDetails = JSON.parse(sessionStorage.getItem('edu_info'));
+
+      const response = await axios.post("http://localhost:5000/api/quizzes/create",{
+        quizData
+      },{
+        headers:{
+          Authorization:educatorDetails.token,
+        }
+      })
+      // const response = await fetch('/api/quiz/save', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(quizData)
+      // });
 
       if (response.ok) {
-        addAssistantMessage("Quiz saved successfully! You can access it from your saved quizzes.");
+        addAssistantMessage("âœ… Quiz saved successfully! You can access it from your saved quizzes.");
       } else {
         addAssistantMessage("Failed to save quiz. Please try again.");
       }
