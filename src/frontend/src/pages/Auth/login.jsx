@@ -63,6 +63,7 @@ const Login = () => {
 
       const token = response.data.token;
       const userDetails  = {
+          id:response?.data?.user._id,
           name:response?.data?.user.name,
           email:response?.data?.user.email,
           role:response?.data?.user.role,
@@ -89,7 +90,7 @@ const Login = () => {
       if(userDetails.role=='student'){
         navigate('/student/dashboard');
       }else{
-        navigate('/admin/dashboard');
+        navigate('/educator/dashboard');
       }
       
       

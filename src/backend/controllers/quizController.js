@@ -7,7 +7,7 @@ export const createQuiz = async (req, res) => {
   try {
     const quiz = await Quiz.create({
       ...req.body,
-      createdBy: req.user.id,
+      createdBy: req.userId,
     });
 
     res.status(201).json({ success: true, quiz });
@@ -17,13 +17,23 @@ export const createQuiz = async (req, res) => {
 };
 
 // Get all quizzes
-export const getAllQuizzes = async (req, res) => {
-  const quizzes = await Quiz.find().sort({ createdAt: -1 });
-  res.json(quizzes);
+export const getQuiz = async (req, res) => {
+  const id = req.query.id;
+  console.log(id);
+  const quiz = await Quiz.find({
+    _id:id
+  }).populate("createdBy","name email");
+  
+  res.json(quiz);
 };
 
 // Get one quiz
-export const getQuiz = async (req, res) => {
-  const quiz = await Quiz.findById(req.params.id);
+export const getAllQuiz = async (req, res) => {
+  console.log("hehre in getQUiz")
+  const id = req.userId;
+  const quiz = await Quiz.find({
+      createdBy:id
+  });
+  console.log(quiz);
   res.json(quiz);
 };

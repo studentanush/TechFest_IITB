@@ -1,308 +1,245 @@
-import React, { useState } from 'react';
-import './GeneratedQuizzes.css';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { 
+  FaClock, 
+  FaCalendarAlt, 
+  FaTimes, 
+  FaBroadcastTower, 
+  FaEdit, 
+  FaTrash, 
+  FaSave,
+  FaCheckCircle 
+} from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const GeneratedQuizzes = () => {
-  const [quizzes, setQuizzes] = useState([
-    {
-      id: 1,
-      title: 'Physics - Motion & Forces',
-      date: 'Today',
-      questions: 20,
-      status: 'draft',
-      score: 100,
-      topics: ['Kinematics', 'Newton\'s Laws', 'Friction'],
-      voiceEnabled: true,
-      context: 'Based on Chapter 3 of Physics textbook covering motion and forces.'
-    },
-    {
-      id: 2,
-      title: 'Math - Calculus Basics',
-      date: 'Yesterday',
-      questions: 15,
-      status: 'published',
-      score: 85,
-      topics: ['Derivatives', 'Integrals', 'Limits'],
-      voiceEnabled: false,
-      context: 'Introduction to calculus concepts for beginners.'
-    },
-    {
-      id: 3,
-      title: 'History - World War II',
-      date: 'Dec 5',
-      questions: 25,
-      status: 'live',
-      score: 95,
-      topics: ['Causes', 'Major Battles', 'Aftermath'],
-      voiceEnabled: true,
-      context: 'Comprehensive coverage of WWII events from 1939-1945.'
-    },
-    {
-      id: 4,
-      title: 'Chemistry - Organic Compounds',
-      date: 'Dec 3',
-      questions: 18,
-      status: 'published',
-      score: 90,
-      topics: ['Hydrocarbons', 'Functional Groups', 'Isomers'],
-      voiceEnabled: false,
-      context: 'Organic chemistry fundamentals from lab manual.'
-    },
-  ]);
-
-  const [editingQuestion, setEditingQuestion] = useState(null);
-  const [showContext, setShowContext] = useState(null);
+  const [quizes, setQuizes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
-
-  const handleEditQuestion = (quizId, questionIndex) => {
-    setEditingQuestion({ quizId, questionIndex });
-  };
-
-  const handleSaveQuiz = (quizId) => {
-    alert(`Quiz ${quizId} saved successfully!`);
-    // Logic to save quiz
-  };
-
-  const handleSaveAndRun = (quizId) => {
-    alert(`Quiz ${quizId} saved and ready for students!`);
-    window.location.href = `/educator/live-quiz?quiz=${quizId}`;
-  };
-
-  const handleSaveAndPublish = (quizId) => {
-    alert(`Quiz ${quizId} published for hosting!`);
-    window.location.href = `/educator/live-quiz?quiz=${quizId}&publish=true`;
-  };
-
-  const handleViewContext = (context) => {
-    setShowContext(context);
-  };
-
-  const sampleQuestions = [
-    {
-      id: 1,
-      question: "What is the formula for Newton's Second Law of Motion?",
-      options: ["F = ma", "E = mc²", "P = mv", "W = Fd"],
-      correctAnswer: 0,
-      score: 10,
-      type: "mcq"
-    },
-    {
-      id: 2,
-      question: "Describe the concept of inertia in your own words.",
-      options: [],
-      score: 15,
-      type: "voice",
-      voiceEnabled: true
-    },
-    {
-      id: 3,
-      question: "Calculate the force required to accelerate a 5kg object at 3m/s²",
-      options: ["15N", "8N", "20N", "12N"],
-      correctAnswer: 0,
-      score: 10,
-      type: "mcq"
+  const [loading, setLoading] = useState(true);
+  const navigate  = useNavigate();
+  // --- Backend Fetch ---
+  const fetchQuizes = async () => {
+    const eduInfo = sessionStorage.getItem('edu_info');
+    if (!eduInfo) {
+        setLoading(false);
+        return;
     }
-  ];
+    const { token } = JSON.parse(eduInfo);
+
+    try {
+      const response = await axios.get("http://localhost:5000/api/quizzes/getUserQuizes", {
+        headers: { Authorization: token },
+      });
+      setQuizes(response.data);
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuizes();
+  }, []);
+
+  // --- Handlers ---
+
+  const handleOpenDetail = (quiz) => {
+    setSelectedQuiz(quiz);
+    // TODO: BACKEND CONNECTION - FETCH SINGLE QUIZ DETAILS
+    // If you need fresh data (e.g., questions aren't in the list view):
+    // const response = await axios.get(`.../api/quizzes/${quiz._id}`);
+    // setSelectedQuiz(response.data);
+  };
+
+  const handleHostLive = (e, quizId) => {
+    e.stopPropagation(); // Prevents the card click (modal) from triggering
+    // TODO: BACKEND CONNECTION - HOST LIVE
+    // Logic to start the socket.io room or generate a game code
+    navigate(`/educator/live-quiz/${quizId}`);
+    
+    console.log(`Hosting Quiz Live: ${quizId}`);
+  };
+
+  const handleEdit = () => {
+    // TODO: BACKEND CONNECTION - EDIT
+    console.log("Edit Mode Triggered", selectedQuiz._id);
+  };
+
+  const handleDelete = () => {
+    // TODO: BACKEND CONNECTION - DELETE
+    console.log("Delete Triggered", selectedQuiz._id);
+  };
+
+  const handleSave = () => {
+     // TODO: BACKEND CONNECTION - SAVE CHANGES
+     console.log("Save Changes Triggered", selectedQuiz._id);
+     setSelectedQuiz(null); // Close modal after save
+  };
+
+  // --- Formatting ---
+  const formatDate = (dateString) => {
+    if(!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+  };
 
   return (
-    <div className="generated-quizzes">
+    // MAIN CONTAINER: Very Dark Violet Theme
+    <div className="min-h-screen bg-[#0D0B14] text-gray-200 p-8 font-sans">
+      
       {/* Header */}
-      <div className="quizzes-header">
-        <div className="header-left">
-          <h1>Generated Quizzes</h1>
-          <p>Review, edit, and publish your AI-generated quizzes</p>
-        </div>
-        <div className="header-right">
-          <div className="search-bar">
-            <i className="fas fa-search"></i>
-            <input type="text" placeholder="Search quizzes..." />
-          </div>
-          <button className="filter-btn">
-            <i className="fas fa-filter"></i>
-            Filter
-          </button>
-        </div>
+      <div className="mb-10 border-b border-violet-900/30 pb-4">
+        <h2 className="text-3xl font-light tracking-wide text-violet-100">
+          Quiz Library
+        </h2>
       </div>
 
-      {/* Quiz Grid */}
-      <div className="quiz-grid">
-        {quizzes.map((quiz) => (
-          <div 
-            key={quiz.id} 
-            className={`quiz-card ${quiz.status}`}
-            onClick={() => setSelectedQuiz(selectedQuiz?.id === quiz.id ? null : quiz)}
-          >
-            {/* Quiz Header */}
-            <div className="quiz-card-header">
-              <div className="quiz-icon">
-                <i className="fas fa-file-alt"></i>
-              </div>
-              <div className="quiz-info">
-                <h3>{quiz.title}</h3>
-                <p className="quiz-meta">
-                  <span><i className="far fa-calendar"></i> {quiz.date}</span>
-                  <span><i className="far fa-question-circle"></i> {quiz.questions} Qs</span>
-                  <span><i className="fas fa-star"></i> {quiz.score} pts</span>
-                </p>
-              </div>
-              <span className={`status-badge ${quiz.status}`}>
-                {quiz.status.toUpperCase()}
-              </span>
-            </div>
-
-            {/* Topics */}
-            <div className="quiz-topics">
-              {quiz.topics.map((topic, index) => (
-                <span key={index} className="topic-tag">
-                  {topic}
-                </span>
-              ))}
-              {quiz.voiceEnabled && (
-                <span className="voice-tag">
-                  <i className="fas fa-microphone"></i> Voice
-                </span>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="quiz-actions">
-              <button 
-                className="action-btn view-context"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleViewContext(quiz.context);
-                }}
+      {loading ? (
+        <div className="flex items-center justify-center h-64 text-violet-400 animate-pulse">
+          Loading Library...
+        </div>
+      ) : (
+        // GRID LAYOUT
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {quizes.length > 0 ? (
+            quizes.map((quiz) => (
+              <div 
+                key={quiz._id} 
+                onClick={() => handleOpenDetail(quiz)}
+                className="group relative bg-[#15121F] rounded-xl border border-violet-900/20 p-6 cursor-pointer hover:border-violet-500/50 hover:bg-[#1A1625] transition-all duration-300 shadow-lg shadow-black/40"
               >
-                <i className="fas fa-eye"></i> View Context
-              </button>
-              <button 
-                className={`action-btn voice-toggle ${quiz.voiceEnabled ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Toggle voice
-                }}
-              >
-                <i className="fas fa-microphone"></i> 
-                {quiz.voiceEnabled ? ' Voice On' : ' Enable Voice'}
-              </button>
-            </div>
-
-            {/* Expanded View */}
-            {selectedQuiz?.id === quiz.id && (
-              <div className="quiz-details">
-                <h4>Questions Preview</h4>
-                {sampleQuestions.map((q) => (
-                  <div key={q.id} className="question-box">
-                    <div className="question-header">
-                      <span className="question-number">Q{q.id}</span>
-                      <span className="question-score">{q.score} pts</span>
-                      <span className="question-type">{q.type.toUpperCase()}</span>
-                    </div>
-                    
-                    <div className="question-content">
-                      <p>{q.question}</p>
-                      
-                      {q.type === 'mcq' ? (
-                        <div className="options-grid">
-                          {q.options.map((option, optIndex) => (
-                            <div key={optIndex} className="option-item">
-                              <span className="option-label">
-                                {String.fromCharCode(65 + optIndex)}
-                              </span>
-                              <input 
-                                type="text" 
-                                defaultValue={option}
-                                className="option-input"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              {optIndex === q.correctAnswer && (
-                                <span className="correct-badge">
-                                  <i className="fas fa-check"></i>
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="voice-question-box">
-                          <div className="voice-icon">
-                            <i className="fas fa-microphone"></i>
-                          </div>
-                          <p>Voice-enabled response question</p>
-                          <button className="test-voice-btn">
-                            <i className="fas fa-play"></i> Test Voice
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="question-actions">
-                      <button className="edit-btn">
-                        <i className="fas fa-edit"></i> Reframe
-                      </button>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max="100" 
-                        defaultValue={q.score}
-                        className="score-input"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                  </div>
-                ))}
-
-                {/* Final Actions */}
-                <div className="final-actions">
-                  <button 
-                    className="final-btn save"
-                    onClick={() => handleSaveQuiz(quiz.id)}
-                  >
-                    <i className="fas fa-save"></i> Save Quiz
-                  </button>
-                  <button 
-                    className="final-btn save-run"
-                    onClick={() => handleSaveAndRun(quiz.id)}
-                  >
-                    <i className="fas fa-play"></i> Save & Run
-                  </button>
-                  <button 
-                    className="final-btn save-publish"
-                    onClick={() => handleSaveAndPublish(quiz.id)}
-                  >
-                    <i className="fas fa-broadcast-tower"></i> Save & Publish
-                  </button>
+                {/* Status Badge */}
+                <div className={`absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider ${
+                    quiz.status === 'Published' 
+                    ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800' 
+                    : 'bg-orange-900/30 text-orange-400 border border-orange-800'
+                }`}>
+                  {quiz.status || 'Draft'}
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
 
-      {/* Context Modal */}
-      {showContext && (
-        <div className="context-modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Document Context</h3>
-              <button 
-                className="close-modal"
-                onClick={() => setShowContext(null)}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>{showContext}</p>
-              <div className="source-info">
-                <i className="fas fa-file-pdf"></i>
-                <span>Source: physics_textbook_chapter3.pdf</span>
+                <h3 className="text-xl font-medium text-white mb-4 pr-16 truncate">
+                  {quiz.title}
+                </h3>
+
+                {/* Meta Info */}
+                <div className="flex flex-col gap-2 text-sm text-gray-500 mb-6">
+                    <div className="flex items-center gap-2">
+                        <FaClock className="text-violet-500" /> {quiz.time}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <FaCalendarAlt className="text-violet-500" /> {formatDate(quiz.date)}
+                    </div>
+                </div>
+
+                {/* Host Button (Stops propagation) */}
+                <button 
+                    onClick={(e) => handleHostLive(e, quiz._id)}
+                    className="w-full mt-auto flex items-center justify-center gap-2 bg-violet-700 hover:bg-violet-600 text-white py-2 rounded-lg font-medium transition-colors shadow-lg shadow-violet-900/20"
+                >
+                    <FaBroadcastTower /> Host Live
+                </button>
               </div>
+            ))
+          ) : (
+            <p className="text-gray-500 col-span-full text-center py-10">No quizzes found.</p>
+          )}
+        </div>
+      )}
+
+      {/* --- POPUP MODAL (Overlay) --- */}
+      {selectedQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          
+          {/* Modal Content */}
+          <div className="bg-[#15121F] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-violet-900/30 shadow-2xl flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b border-violet-900/20 bg-[#1A1625]">
+                <div>
+                    <h2 className="text-2xl font-semibold text-white">{selectedQuiz.title}</h2>
+                    <p className="text-sm text-gray-400 mt-1">
+                        {selectedQuiz.questions?.length || 0} Questions • {selectedQuiz.time}
+                    </p>
+                </div>
+                <button 
+                    onClick={() => setSelectedQuiz(null)}
+                    className="text-gray-500 hover:text-white transition-colors text-xl"
+                >
+                    <FaTimes />
+                </button>
             </div>
+
+            {/* Scrollable Questions Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                {selectedQuiz.questions && selectedQuiz.questions.map((q, index) => (
+                    <div key={index} className="bg-[#0D0B14] p-5 rounded-xl border border-violet-900/10">
+                        
+                        {/* Question Text */}
+                        <div className="flex gap-3 mb-4">
+                            <span className="text-violet-500 font-bold text-lg">Q{index + 1}.</span>
+                            <p className="text-gray-200 text-lg leading-relaxed">{q.question}</p>
+                        </div>
+
+                        {/* Options Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 ml-8">
+                            {q.options.map((opt, i) => (
+                                <div key={i} className="bg-[#1E1B2E] px-4 py-3 rounded-lg border border-gray-800 text-gray-400 text-sm">
+                                    <span className="font-semibold text-violet-400 mr-2">
+                                        {String.fromCharCode(65 + i)}.
+                                    </span>
+                                    {opt}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Correct Answer Section */}
+                        <div className="ml-8 mt-2 p-3 bg-emerald-900/10 border border-emerald-900/30 rounded-lg flex items-start gap-2">
+                            <FaCheckCircle className="text-emerald-500 mt-1 shrink-0" />
+                            <div>
+                                <span className="text-emerald-500 font-bold text-sm block">Correct Answer:</span>
+                                <span className="text-emerald-100 text-sm">
+                                    {q.correctAnswer} (Option {q.correctAnswerOption})
+                                </span>
+                                {q.explantion && (
+                                    <p className="text-gray-500 text-xs mt-1 italic border-t border-emerald-900/30 pt-1">
+                                        Note: {q.explantion}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Modal Footer (Actions) */}
+            <div className="p-5 border-t border-violet-900/20 bg-[#1A1625] flex justify-end gap-3">
+                <button 
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 px-5 py-2 rounded-lg bg-red-900/20 text-red-400 hover:bg-red-900/40 transition-colors"
+                >
+                    <FaTrash size={14} /> Delete
+                </button>
+                <button 
+                    onClick={handleEdit}
+                    className="flex items-center gap-2 px-5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition-colors"
+                >
+                    <FaEdit size={14} /> Edit
+                </button>
+                <button 
+                    onClick={handleSave}
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 transition-colors"
+                >
+                    <FaSave size={14} /> Save
+                </button>
+            </div>
+
           </div>
         </div>
       )}
     </div>
   );
-};
+}
 
 export default GeneratedQuizzes;
