@@ -14,11 +14,11 @@ const LiveQuiz = () => {
 
   const getRoomCodeAndSetQuiz = (quizData) => {
     const hostName = quizData[0]?.createdBy?.name;
-    const quizTime = quizData[0]?.time;
    
+    const quizD = quizData[0];
     adminSocket.emit(
       "createRoom",
-      { hostName, quizTime },
+      { hostName, quizD},
       (response) => {
         if (response.roomCode) {
           const roomCode = response.roomCode;
@@ -27,7 +27,7 @@ const LiveQuiz = () => {
             roomCode,
             detail: quizData[0]
           });
-          console.log(quiz)
+
           console.log("Quiz room created:", roomCode);
         } else {
           alert("Error creating room!");
@@ -36,11 +36,11 @@ const LiveQuiz = () => {
     );
   };
   useEffect(() => {
-  // This will run AFTER setQuiz is called and the component re-renders
-  if (quiz.roomCode) {
-    console.log("State Monitor: Quiz state has been updated:", quiz);
-  }
-}, [quiz]);
+    // This will run AFTER setQuiz is called and the component re-renders
+    if (quiz.roomCode) {
+      console.log("State Monitor: Quiz state has been updated:", quiz);
+    }
+  }, [quiz]);
   const fetchQuiz = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/quizzes/getQuiz", {
@@ -48,7 +48,7 @@ const LiveQuiz = () => {
           id: id,
         }
       });
-      
+
       const quizData = response.data;
       if (quizData) {
 
@@ -59,11 +59,12 @@ const LiveQuiz = () => {
       console.log(error);
     }
   };
+  console.log(quiz);
   console.log(players);
   useEffect(() => {
     console.log("in use effect")
     adminSocket.on("updatePlayers", (players) => setPlayers(players));
-    
+
     fetchQuiz();
 
 
@@ -116,17 +117,27 @@ const LiveQuiz = () => {
     }
     setIsQuizStarted(true);
     setQuiz(prev => ({ ...prev, quizStatus: 'started' }));
+    const roomCode = quiz.roomCode;
+    adminSocket.emit("playOnOff",{roomCode,play:true},(response)=>{
+        console.log(response);
+    })
   };
 
   const handleEndQuiz = () => {
     setIsQuizStarted(false);
     setQuiz(prev => ({ ...prev, quizStatus: 'ended' }));
+    const roomCode = quiz.roomCode;
+    adminSocket.emit("playOnOff",{roomCode,play:false},(response)=>{
+        console.log(response);
+    })
     alert('Quiz ended! Redirecting to reports...');
     window.location.href = '/educator/reports';
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion < quiz.totalQuestions) {
+    // Use optional chaining for safety
+    const totalQuestions = quiz.detail?.questions?.length || 0;
+    if (currentQuestion < totalQuestions) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -136,6 +147,9 @@ const LiveQuiz = () => {
       setCurrentQuestion(currentQuestion - 1);
     }
   };
+
+  // Get the data for the currently displayed question (0-indexed array vs 1-indexed display)
+  const currentQuestionData = quiz.detail?.questions[currentQuestion - 1]
 
   const copyRoomCode = () => {
     navigator.clipboard.writeText(quiz.roomCode);
@@ -206,19 +220,19 @@ const LiveQuiz = () => {
                 onClick={() => setSelectedStudent(student)}
               >
                 <div className="student-avatar" style={{ background: student.avatarColor }}>
-                  {/* {student.name.charAt(0)} */}
+                  {student.playerName.charAt(0)}
                 </div>
 
                 <div className="student-info">
-                  <h4>{student.name}</h4>
-                  <p>{student.email}</p>
+                  <h4>{student.playerName}</h4>
+                  <p>{student.playerEmail}</p>
                   <div className="student-meta">
                     <span className="score">
                       <i className="fas fa-star"></i> {student.score} pts
                     </span>
                     <span
                       className="status"
-                      style={{ color: getStatusColor(student?.status) }}
+                      style={{ color: getStatusColor('active') }}
                     >
                       <div
                         className="status-dot"
@@ -244,7 +258,7 @@ const LiveQuiz = () => {
                     className="action-btn profile"
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert(`Viewing ${student.name}'s profile`);
+                      alert(`Viewing ${student.playerName}'s profile`);
                     }}
                     title="View profile"
                   >
@@ -281,30 +295,36 @@ const LiveQuiz = () => {
                 {/* Current Question Display */}
                 <div className="current-question-view">
                   <div className="question-header">
-                    <span className="question-number">Question {currentQuestion} of {quiz.detail?.questions?.length}</span>
-                    <span className="question-type">Multiple Choice</span>
+                    <span className="question-number">
+                      Question {currentQuestion} of {quiz.detail?.questions?.length || 0}
+                    </span>
+                    <span className="question-type">{currentQuestionData?.type || 'Multiple Choice'}</span>
                   </div>
 
                   <div className="question-content">
-                    <p>What is the formula for calculating force using Newton's Second Law of Motion?</p>
+                    
+                    <p>{currentQuestionData?.question || 'Loading Question...'}</p>
 
                     <div className="options-grid">
-                      {['F = ma', 'E = mc²', 'P = mv', 'W = Fd'].map((option, index) => (
+                     
+                      {currentQuestionData?.options?.map((optionText, index) => (
                         <div key={index} className="option-card">
                           <div className="option-label">
-                            {String.fromCharCode(65 + index)}
+                            {String.fromCharCode(65 + index)} {/* A, B, C, D */}
                           </div>
-                          <div className="option-text">{option}</div>
-                          <div className="option-stats">
+                        
+                          <div className="option-text">{optionText}</div>
+                          
+                          {/* <div className="option-stats">
                             <span className="percentage">42%</span>
                             <span className="count">5 students</span>
-                          </div>
+                          </div> */}
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Navigation Controls */}
+                 
                   <div className="question-nav">
                     <button
                       className="nav-btn prev"
@@ -316,7 +336,7 @@ const LiveQuiz = () => {
                     </button>
 
                     <div className="question-tracker">
-                      {[...Array(quiz.detail?.questions)].map((_, idx) => (
+                      {quiz.detail?.questions?.map((_, idx) => (
                         <div
                           key={idx}
                           className={`tracker-dot ${idx + 1 === currentQuestion ? 'active' : idx + 1 < currentQuestion ? 'answered' : ''}`}
@@ -330,7 +350,7 @@ const LiveQuiz = () => {
                     <button
                       className="nav-btn next"
                       onClick={handleNextQuestion}
-                      disabled={currentQuestion === quiz.detail?.questions?.length}
+                      disabled={currentQuestion === (quiz.detail?.questions?.length || 0)}
                     >
                       Next Question
                       <i className="fas fa-arrow-right"></i>

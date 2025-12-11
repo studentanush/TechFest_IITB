@@ -1,10 +1,11 @@
 
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { ContextAPI } from '../../Context';
+import { playerSocket } from '../../socket';
 
 const StudentDashboard = () => {
   const [roomCode, setRoomCode] = useState('');
@@ -14,7 +15,7 @@ const StudentDashboard = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
-
+  const {studentData} = useContext(ContextAPI);
   const typingMessages = [
     "Join Live Quiz Instantly ⚡",
     "Track Your Progress 📊",
@@ -110,6 +111,9 @@ const StudentDashboard = () => {
     },
   ];
 
+  
+
+
   const handleJoinQuiz = () => {
     if (roomCode.trim()) {
       navigate(`/attend-quiz/${roomCode}`);
@@ -183,8 +187,8 @@ const StudentDashboard = () => {
           <div className="user-profile">
             <div className="user-avatar">S</div>
             <div className="user-info">
-              <h4>Amartya Sen</h4>
-              <p>Physics 101 • Roll No: 25</p>
+              <h4>{studentData.name}</h4>
+              {/* <p>Physics 101 • Roll No: 25</p> */}
             </div>
           </div>
         </div>
@@ -211,11 +215,11 @@ const StudentDashboard = () => {
                 type="text"
                 placeholder="Enter room code (e.g., QUIZ-8B2X)"
                 value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                onChange={(e) => setRoomCode(e.target.value)}
                 maxLength="10"
                 onKeyPress={(e) => e.key === 'Enter' && handleJoinQuiz()}
               />
-              <button onClick={handleJoinQuiz} className="action-btn join-btn">
+              <button onClick={handleJoinQuiz} className="action-btn join-btn w-20">
                 <i className="fas fa-sign-in-alt"></i> Join Now
               </button>
             </div>

@@ -50,24 +50,28 @@ const rooms = new Map();
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
 
-  socket.on("joinRoom", ({ roomCode, playerName }, callback) => {
+  socket.on("joinRoom", ({ roomCode, playerName,playerEmail }, callback) => {
     console.log(roomCode);
-    console.log(rooms);
+    //console.log(rooms);
+    console.log(playerName);
     const room = rooms.get(roomCode);
 
     if (!room) {
       callback({ error: "Room not found" });
       return;
     }
-
-    room.players.set(socket.id, playerName);
+    const playerDetail = {
+      playerName,
+      playerEmail
+    }
+    room.players.set(socket.id, playerDetail);
     socket.join(roomCode);
 
     console.log(`${playerName} joined room ${roomCode}`);
 
     io.to(roomCode).emit("updatePlayers", Array.from(room.players.values()));
     adminNamespace.to(roomCode).emit("updatePlayers", Array.from(room.players.values()));
-
+    io.to(roomCode).emit("getQuizDetails",room.quizD);
     callback({ success: true });
   });
 
@@ -132,12 +136,13 @@ const adminNamespace = io.of("/admin");
 adminNamespace.on("connection", (socket) => {
   console.log("Admin connected:", socket.id);
 
-  socket.on("createRoom", ({ hostName,quizTime }, callback) => {
+  socket.on("createRoom", ({ hostName,quizD }, callback) => {
     const roomCode = nanoid(6);
     console.log(hostName);
     rooms.set(roomCode, {
       admin: hostName,
-      quizTime:quizTime,
+      quizD:quizD,
+
       play:false,
       players: new Map(),
       scores: new Map(),
@@ -145,7 +150,8 @@ adminNamespace.on("connection", (socket) => {
     const room = rooms.get(roomCode);
     console.log(`Room ${roomCode} created by ${hostName}`);
     socket.join(roomCode);
-    io.to(roomCode).emit("quiztime",quizTime);
+    //io.to(roomCode).emit("quiztime",quizTime);
+    
     callback({ roomCode });
   });
 
