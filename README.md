@@ -217,9 +217,15 @@ AI generation
 - Team: Theta Force
 - Role: Full-stack development, AI integration, and event-driven architecture.
 
-
-<img width="1865" height="921" alt="image" src="https://github.com/user-attachments/assets/d6d1a652-bba9-4951-b8a3-55b9023a2bac" />
-<img width="1866" height="901" alt="image" src="https://github.com/user-attachments/assets/9718467c-da4d-4350-95bb-ca884bb64da8" />
+Sample Screens:
+1. Landing Page 
 <img width="1907" height="912" alt="image" src="https://github.com/user-attachments/assets/7c65f327-cbd1-49c7-aca7-30bd4b528c96" />
+
+2. Chat and Generate Quizzes (Educator-Side)
+<img width="1865" height="921" alt="image" src="https://github.com/user-attachments/assets/d6d1a652-bba9-4951-b8a3-55b9023a2bac" />
+
+3. Student Dashboard
+<img width="1866" height="901" alt="image" src="https://github.com/user-attachments/assets/9718467c-da4d-4350-95bb-ca884bb64da8" />
+
 
 ---
